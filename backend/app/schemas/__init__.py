@@ -19,6 +19,12 @@ class UserLogin(BaseModel):
     password: str
 
 
+class WeChatLoginIn(BaseModel):
+    """微信小程序登录：前端 uni.login 拿到的临时 code"""
+
+    code: str = Field(min_length=1, max_length=128)
+
+
 class UserUpdate(BaseModel):
     nickname: Optional[str] = None
     avatar: Optional[str] = None

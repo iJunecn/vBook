@@ -1,15 +1,21 @@
 """认证相关接口"""
+import secrets
+
+import httpx
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user
+from app.core.config import settings
 from app.core.security import create_access_token, hash_password, verify_password
 from app.db.session import get_db
 from app.models import User
-from app.schemas import TokenOut, UserCreate, UserLogin, UserOut, UserUpdate
+from app.schemas import TokenOut, UserCreate, UserLogin, UserOut, UserUpdate, WeChatLoginIn
 
 router = APIRouter(prefix="/auth", tags=["auth"])
+
+WECHAT_CODE2SESSION_URL = "https://api.weixin.qq.com/sns/jscode2session"
 
 
 @router.post("/register", response_model=TokenOut)
@@ -42,6 +48,53 @@ def login(payload: UserLogin, db: Session = Depends(get_db)):
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "用户名或密码错误")
     if not user.is_active:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "账号已停用")
+    token = create_access_token(user.id, {"username": user.username})
+    return TokenOut(access_token=token, user=UserOut.model_validate(user))
+
+
+@router.post("/wechat-login", response_model=TokenOut)
+async def wechat_login(payload: WeChatLoginIn, db: Session = Depends(get_db)):
+    """微信小程序一键登录：code -> openid -> 签发 JWT（按需自动注册）"""
+    if not settings.WECHAT_APPID or not settings.WECHAT_SECRET:
+        raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, "服务端未配置微信登录")
+    params = {
+        "appid": settings.WECHAT_APPID,
+        "secret": settings.WECHAT_SECRET,
+        "js_code": payload.code,
+        "grant_type": "authorization_code",
+    }
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            resp = await client.get(WECHAT_CODE2SESSION_URL, params=params)
+            data = resp.json()
+    except Exception as e:
+        raise HTTPException(status.HTTP_502_BAD_GATEWAY, f"微信登录服务异常：{e}")
+
+    openid = data.get("openid")
+    if not openid:
+        # 微信返回 errcode/errmsg（如 code 无效、AppID 不匹配等）
+        raise HTTPException(
+            status.HTTP_401_UNAUTHORIZED,
+            f"微信登录失败：{data.get('errmsg') or data.get('errcode') or '未知错误'}",
+        )
+
+    user = db.query(User).filter(User.openid == openid).first()
+    if not user:
+        # 首次登录：用 openid 派生占位用户名/邮箱以满足非空约束，昵称头像可后续修改
+        suffix = openid[:12]
+        user = User(
+            openid=openid,
+            username=f"wx_{suffix}",
+            email=f"{suffix}@wx.local",
+            hashed_password=hash_password(secrets.token_urlsafe(16)),
+            nickname="微信用户",
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+    elif not user.is_active:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "账号已停用")
+
     token = create_access_token(user.id, {"username": user.username})
     return TokenOut(access_token=token, user=UserOut.model_validate(user))
 

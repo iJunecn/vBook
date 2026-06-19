@@ -14,6 +14,8 @@ class User(Base):
     username: Mapped[str] = mapped_column(String(64), unique=True, index=True, nullable=False)
     email: Mapped[str] = mapped_column(String(120), unique=True, index=True, nullable=False)
     hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
+    # 微信小程序登录：openid 唯一标识，账号密码用户为空
+    openid: Mapped[str | None] = mapped_column(String(64), unique=True, index=True, default=None)
     nickname: Mapped[str | None] = mapped_column(String(64), default=None)
     avatar: Mapped[str | None] = mapped_column(String(255), default=None)
     campus: Mapped[str | None] = mapped_column(String(120), default=None)

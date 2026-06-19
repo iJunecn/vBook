@@ -36,13 +36,12 @@
 - **PaddleOCR (PP-OCRv6)** — 异步 OCR 服务
 - **agnes-2.0-flash (OpenAI 兼容接口)** — 大模型结构化 & 纠错
 
-### 前端
-- **Vue 3 + Vite 6** — 渐进式框架
-- **Element Plus 2.9** — 开源 UI 组件库（蓝白主题）
+### 前端（uni-app · 微信小程序）
+- **uni-app (Vue 3 + Vite)** — 跨端框架，主投放微信小程序，可同时编译 H5
+- **wot-design-uni** — 小程序友好的 Vue 3 组件库（蓝白主题）
 - **Pinia 2** — 状态管理
-- **vue-router 4** — 路由
-- **axios** — HTTP 客户端
-- **Nginx** — 静态托管 + API 反代
+- **uni.request / uni.uploadFile** — 网络与文件上传（替代 axios）
+- 详见 [`frontend/README.md`](frontend/README.md)
 
 ### 部署
 - **Docker + Docker Compose** — 一键启动
@@ -253,14 +252,18 @@ pip install -r requirements.txt
 uvicorn app.main:app --reload --port 8000
 ```
 
-### 前端
+### 前端（uni-app / 微信小程序）
 ```bash
 cd frontend
-npm install
-npm run dev    # 默认 http://localhost:5173
+bun install
+bun run dev:mp-weixin   # 产物在 dist/dev/mp-weixin，用「微信开发者工具」导入运行
+bun run dev:h5          # 可选：浏览器快速联调，默认 http://localhost:5173
 ```
 
-前端 dev server 已经把 `/api` 和 `/uploads` 反代到 `http://localhost:8000`，所以前后端联调无需改配置。
+后端地址在 [`frontend/src/api/config.js`](frontend/src/api/config.js) 配置（默认 `http://localhost:8000`）。
+微信小程序真机/模拟器调试需在「微信开发者工具 → 详情 → 本地设置」勾选「不校验合法域名」；
+正式发布需将后端换成**已 ICP 备案的 HTTPS 域名**并在小程序后台「服务器域名」中配置。
+完整说明见 [`frontend/README.md`](frontend/README.md)。
 
 ### 测试
 ```bash

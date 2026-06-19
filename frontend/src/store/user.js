@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { authApi } from '@/api'
+import { TOKEN_KEY, USER_KEY } from '@/api/config'
 
 export const useUserStore = defineStore('user', {
   state: () => ({
@@ -11,17 +12,25 @@ export const useUserStore = defineStore('user', {
   },
   actions: {
     loadFromStorage() {
-      this.token = localStorage.getItem('vbook_token') || ''
-      const raw = localStorage.getItem('vbook_user')
-      this.user = raw ? JSON.parse(raw) : null
+      this.token = uni.getStorageSync(TOKEN_KEY) || ''
+      const raw = uni.getStorageSync(USER_KEY)
+      this.user = raw ? (typeof raw === 'string' ? JSON.parse(raw) : raw) : null
     },
-    async login(payload) {
-      const data = await authApi.login(payload)
+    /** 微信一键登录：拿 code -> 换 token */
+    async wechatLogin() {
+      const code = await new Promise((resolve, reject) => {
+        uni.login({
+          provider: 'weixin',
+          success: (res) => (res.code ? resolve(res.code) : reject(new Error('未获取到 code'))),
+          fail: reject,
+        })
+      })
+      const data = await authApi.wechatLogin({ code })
       this._setAuth(data)
       return data
     },
-    async register(payload) {
-      const data = await authApi.register(payload)
+    async login(payload) {
+      const data = await authApi.login(payload)
       this._setAuth(data)
       return data
     },
@@ -29,20 +38,26 @@ export const useUserStore = defineStore('user', {
       if (!this.token) return null
       const me = await authApi.me()
       this.user = me
-      localStorage.setItem('vbook_user', JSON.stringify(me))
+      uni.setStorageSync(USER_KEY, JSON.stringify(me))
+      return me
+    },
+    async updateProfile(payload) {
+      const me = await authApi.updateMe(payload)
+      this.user = me
+      uni.setStorageSync(USER_KEY, JSON.stringify(me))
       return me
     },
     logout() {
       this.token = ''
       this.user = null
-      localStorage.removeItem('vbook_token')
-      localStorage.removeItem('vbook_user')
+      uni.removeStorageSync(TOKEN_KEY)
+      uni.removeStorageSync(USER_KEY)
     },
     _setAuth(data) {
       this.token = data.access_token
       this.user = data.user
-      localStorage.setItem('vbook_token', data.access_token)
-      localStorage.setItem('vbook_user', JSON.stringify(data.user))
+      uni.setStorageSync(TOKEN_KEY, data.access_token)
+      uni.setStorageSync(USER_KEY, JSON.stringify(data.user))
     },
   },
 })

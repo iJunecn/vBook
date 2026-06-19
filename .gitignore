@@ -11,9 +11,11 @@ env/
 .pytest_cache/
 .mypy_cache/
 
-# 前端
+# 前端 / uni-app
 node_modules/
 dist/
+unpackage/
+.hbuilderx/
 .vite/
 *.local
 .DS_Store

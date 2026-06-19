@@ -36,6 +36,10 @@ class Settings(BaseSettings):
     MAX_UPLOAD_SIZE: int = 20 * 1024 * 1024  # 20MB
     ALLOWED_IMAGE_TYPES: str = "image/jpeg,image/png,image/webp,image/jpg"
 
+    # ---- 微信小程序登录 ----
+    WECHAT_APPID: str = ""
+    WECHAT_SECRET: str = ""
+
     # ---- agnes 大模型（OpenAI 兼容接口）----
     AGNES_API_KEY: str = ""
     AGNES_BASE_URL: str = "https://agnes-ai.com"

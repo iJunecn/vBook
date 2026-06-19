@@ -14,25 +14,18 @@ services:
     volumes:
       - backend_data:/app/data
       - backend_uploads:/app/uploads
-    expose:
-      - "8000"
+    # 小程序 / H5 直接访问后端，需对外发布端口
+    # 生产请置于反向代理（HTTPS + 已备案域名）之后，供小程序「服务器域名」白名单使用
+    ports:
+      - "8000:8000"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
       timeout: 5s
       retries: 3
 
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    container_name: vbook-frontend
-    restart: unless-stopped
-    depends_on:
-      backend:
-        condition: service_healthy
-    ports:
-      - "8080:80"
+# 前端为 uni-app 微信小程序：用「微信开发者工具」运行/上传，不再需要 nginx 容器。
+# 如需发布 H5 版本：cd frontend && bun run build:h5，将 dist/build/h5 部署到任意静态托管。
 
 volumes:
   backend_data:

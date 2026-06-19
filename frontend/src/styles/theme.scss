@@ -1,0 +1,23 @@
+/**
+ * 蓝白主题 CSS 变量（迁移自旧 Web 版 main.css）
+ * 小程序与 H5 均支持 CSS 自定义属性。
+ */
+page,
+:root {
+  --vb-brand-50: #eff5ff;
+  --vb-brand-100: #dbe7ff;
+  --vb-brand-300: #93b4ff;
+  --vb-brand-600: #2563eb;
+  --vb-brand-700: #1d4ed8;
+
+  --vb-ink-900: #0f1f33;
+  --vb-ink-700: #33475b;
+  --vb-ink-500: #5b6b7c;
+  --vb-ink-300: #9aa7b4;
+
+  --vb-bg: #f5f8ff;
+  --vb-white: #ffffff;
+
+  /* wot-design-uni 主题色对齐品牌色 */
+  --wot-color-theme: #2563eb;
+}
