@@ -1,0 +1,39 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: vbook-backend
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      # 把容器内路径固化下来
+      DATABASE_URL: sqlite:////app/data/vbook.db
+      UPLOAD_DIR: /app/uploads
+    volumes:
+      - backend_data:/app/data
+      - backend_uploads:/app/uploads
+    expose:
+      - "8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: vbook-frontend
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "8080:80"
+
+volumes:
+  backend_data:
+  backend_uploads:
