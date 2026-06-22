@@ -15,8 +15,10 @@ class UserCreate(BaseModel):
 
 
 class UserLogin(BaseModel):
-    username: str
-    password: str
+    """账号密码登录：`account` 可以是用户名或邮箱（后端自动识别）"""
+
+    account: str = Field(min_length=3, max_length=120, description="用户名或邮箱")
+    password: str = Field(min_length=6, max_length=64)
 
 
 class WeChatLoginIn(BaseModel):

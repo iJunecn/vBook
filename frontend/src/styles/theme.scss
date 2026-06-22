@@ -18,6 +18,11 @@ page,
   --vb-bg: #f5f8ff;
   --vb-white: #ffffff;
 
+  /* 响应式断点：
+     - 默认（< 768px）：rpx 单位，手机端原生体验
+     - ≥ 768px：px 单位，居中容器 max-width 1024px，电脑端布局
+     - ≥ 1200px：更宽的容器 max-width 1200px */
+
   /* wot-design-uni 主题色对齐品牌色 */
   --wot-color-theme: #2563eb;
 }

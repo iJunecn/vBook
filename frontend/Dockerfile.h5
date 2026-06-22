@@ -4,6 +4,10 @@
 #   docker compose up -d --build
 #   → H5 用户访问：   http://localhost:6628
 #   → 后端 API：      http://localhost:6627
+#
+# 关键点：构建期不再注入 VITE_API_HOST，让 API_BASE 走相对路径 '/api/v1'。
+# 这样浏览器只看到 nginx(6628) 这一个源，跨域问题彻底消失，
+# 局域网/公网用户从任意 IP 访问 6628 都能正常调 API。
 
 # ---- builder ----
 FROM oven/bun:1-alpine AS builder
@@ -13,9 +17,10 @@ COPY package.json bun.lock ./
 RUN bun install --frozen-lockfile
 
 COPY . .
-# VITE_API_HOST 在构建期被注入：浏览器直接访问后端 6627 端口
-ARG VITE_API_HOST=http://localhost:6627
-ENV VITE_API_HOST=$VITE_API_HOST
+# 注意：VITE_API_HOST 在这里有意不传，使 config.js 里取到空串 → API_BASE = '/api/v1'
+# 如需在镜像里硬编码一个固定后端地址，临时取消下行注释即可（不推荐）
+# ARG VITE_API_HOST=http://localhost:6627
+# ENV VITE_API_HOST=$VITE_API_HOST
 RUN bun run build:h5
 
 # ---- runtime ----

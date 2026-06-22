@@ -105,11 +105,12 @@
 ## 四、功能特性
 
 ### 用户
-- [x] 账号 / 密码注册登录（当前主流程）
+- [x] 邮箱 / 用户名 + 密码注册登录（H5 / 小程序通用；`account` 字段后端自动判别）
+- [x] 注册即登录（后端直接签 JWT，不用再走一次登录）
 - [x] JWT 鉴权
 - [x] 个人资料编辑（昵称、校区、头像）
 - [x] 我的上架 / 我的订单
-- [ ] 微信小程序一键登录（接入中：见 [Roadmap](#十三roadmap)）
+- [x] 微信小程序一键登录（已实现，需在 `.env` 配 `WECHAT_APPID` / `WECHAT_SECRET`）
 
 ### 卖书
 - [x] 拖拽 / 选择上传书脊照片（JPG / PNG / WEBP）
@@ -128,12 +129,14 @@
 
 ### 系统
 - [x] CORS 配置（开发 / 生产可切换）
+- [x] H5 同源代理：浏览器只访问 `6628`，nginx 反代 `/api/` 与 `/uploads/` 到后端，**免 CORS、可从任意 IP 访问**
 - [x] 静态资源走 Nginx（30 天缓存）
 - [x] OpenAPI 文档（`/docs`）
 - [x] 健康检查端点 `/health`
 - [x] 体积限制：单图 ≤ 20MB
 - [x] Docker 一键部署（同时拉起 H5 + 后端两个容器）
 - [x] 数据 / 上传文件挂卷，升级不丢数据
+- [x] **PC 网页端适配**（≥ 768px 自动切换为顶部导航 + 多列网格 + 居中容器）
 
 ---
 
@@ -168,8 +171,8 @@ vBook/
 │   └── Dockerfile                 # EXPOSE 6627
 ├── frontend/                      # uni-app 前端（H5 容器内 6628）
 │   ├── src/
-│   │   ├── api/                   #   config.js 默认 http://localhost:6627
-│   │   ├── pages/                 #   index / sell / listing / orders / profile / login
+│   │   ├── api/                   #   config.js 默认相对路径（Vite dev / nginx 同源代理）
+│   │   ├── pages/                 #   index / sell / listing / orders / profile / login / register
 │   │   ├── store/                 # Pinia
 │   │   ├── styles/                # 蓝白主题
 │   │   ├── components/
@@ -180,7 +183,7 @@ vBook/
 │   ├── manifest.json
 │   ├── vite.config.js
 │   ├── package.json
-│   ├── .env.example               # VITE_API_HOST=http://localhost:6627
+│   ├── .env.example               # VITE_API_HOST 留空 → 走 nginx 同源代理（推荐）
 │   ├── Dockerfile.h5              # 多阶段构建：bun 编译 H5 → nginx 监听 6628
 │   └── nginx.conf                 # 反代 /api/ 与 /uploads/ 到 backend:6627
 ├── docker-compose.yml             # backend(6627) + frontend(6628) 同时拉起
@@ -282,9 +285,9 @@ bun run dev:mp-weixin
 # 然后用「微信开发者工具」导入该目录，AppID 填你的小程序 AppID
 ```
 
-后端地址在 [`frontend/src/api/config.js`](frontend/src/api/config.js) 配置（默认 `http://localhost:6627`），也可在 `frontend/.env` 用 `VITE_API_HOST` 覆盖。
-H5 本地调试时 Vite 默认 `5173`，但浏览器实际请求会打后端 `6627`（`VITE_API_HOST`）。
-微信小程序真机/模拟器调试需在「微信开发者工具 → 详情 → 本地设置」勾选「不校验合法域名」；
+后端地址在 [`frontend/src/api/config.js`](frontend/src/api/config.js) 配置（**默认留空 → 走相对路径 `/api/v1`**，由 Vite dev server 自带代理或浏览器同源直接请求）。如需在 H5 本地调试时直连后端（绕过 Vite 代理），可在 `frontend/.env` 设置 `VITE_API_HOST=http://localhost:6627`。
+H5 本地调试时 Vite 默认 `5173`，浏览器请求 `/api/v1/...` 由 Vite dev server 转发到 `6627`（无需配 `VITE_API_HOST`）。
+微信小程序走 [`config.js`](frontend/src/api/config.js) 的 `MP-WEIXIN` 块（默认 `http://localhost:6627`）；真机/模拟器调试需在「微信开发者工具 → 详情 → 本地设置」勾选「不校验合法域名」；
 正式发布需将后端换成**已 ICP 备案的 HTTPS 域名**并在小程序后台「服务器域名」中配置。
 完整说明见 [`frontend/README.md`](frontend/README.md)。
 
@@ -302,9 +305,9 @@ pytest tests/    # 包含基本冒烟测试，不依赖外部 API
 
 | 方法   | 路径                                | 鉴权 | 说明 |
 | ------ | ----------------------------------- | ---- | ---- |
-| POST   | `/api/v1/auth/register`             | 无   | 注册（H5 当前主流程） |
-| POST   | `/api/v1/auth/login`                | 无   | 账号密码登录（H5 当前主流程） |
-| POST   | `/api/v1/auth/wx-login`             | 无   | 微信小程序 `code` 换 JWT（小程序上线时启用） |
+| POST   | `/api/v1/auth/register`             | 无   | 注册（H5 / 小程序通用，邮箱 + 用户名 + 密码） |
+| POST   | `/api/v1/auth/login`                | 无   | 账号密码登录，`account` 字段支持 **用户名或邮箱** |
+| POST   | `/api/v1/auth/wx-login`             | 无   | 微信小程序 `code` 换 JWT（已实现，配 `WECHAT_APPID`/`WECHAT_SECRET` 即可用） |
 | GET    | `/api/v1/auth/me`                   | 是   | 当前用户 |
 | PATCH  | `/api/v1/auth/me`                   | 是   | 更新资料 |
 | POST   | `/api/v1/recognize`                 | 是   | 上传书脊照片 → 识别书单（不落库） |
@@ -442,22 +445,30 @@ bun run dev:mp-weixin   # 产物在 dist/dev/mp-weixin
 小程序后台「服务器域名」需把后端 HTTPS 域名加入 `request` / `uploadFile` / `downloadFile` 合法域名（开发期可勾选「不校验合法域名」跳过）。
 
 **Q7：端口 6627 / 6628 已被占用怎么办？**
-A：改根目录 `.env` 中的 `BACKEND_PORT` 同步修改：
+A：改根目录 `.env` 中的 `BACKEND_PORT`，并同步修改：
 - `docker-compose.yml` 的 `"6627:6627"` / `"6628:6628"`
 - `backend/Dockerfile` 的 `EXPOSE 6627` 与 `CMD` 里的 `--port 6627`
 - `frontend/Dockerfile.h5` 的 `EXPOSE 6628`
 - `frontend/nginx.conf` 的 `listen 6628;` 与两处 `proxy_pass http://backend:6627`
-- `frontend/src/api/config.js` 的 `localhost:6627`
+- `frontend/src/api/config.js` 的 `MP-WEIXIN` 块里写死的 `localhost:6627`（仅小程序真机调试用到）
 - `README.md` 与 `.env.example` 中所有出现 6627/6628 的地方
+
+> 注：H5 容器**不再硬编码** `VITE_API_HOST`，浏览器走相对路径 `/api/v1` → nginx 反代到后端，**H5 用户的浏览器根本不会去访问 6627**，所以 6627 是否可直连不影响 H5 使用。
+
+**Q8：H5 部署后报「网络异常，请检查后端地址」？**
+A：H5 现在用 **nginx 同源代理** 调后端，浏览器只会发请求到 `6628` 同源。`request.js` 里的 "网络异常" 通常意味着：
+1. **后端没起来**：`docker compose ps` 看 backend 是否 healthy（`curl http://localhost:6627/health` 应返回 `{"status":"ok"}`）。
+2. **CORS 配置丢了**（仅当 H5 直连后端时才会出现）：检查 `.env` 里的 `CORS_ORIGINS` 是否含 `http://localhost:6628`。
+3. **局域网/手机访问**：H5 用户从手机、他人电脑访问时，`localhost` 在他们的设备上指向自己。H5 容器**走相对路径**，所以地址栏里填什么 IP/域名都无所谓，只要能访问到 6628 就能用。
+4. **反向代理 / CDN 把 SPA 路径打回了 index.html**：若你把 H5 套在 Cloudflare / Nginx 之外，务必把 `/api/` 与 `/uploads/` 这两个前缀反代到后端，不能让 SPA fallback 兜走。
 
 ---
 
 ## 十三、Roadmap
 
-- [ ] **微信小程序**（基于现有 REST API）
-  - `POST /api/v1/auth/wx-login`（code → openid → JWT）
-  - `.env` 配 `WECHAT_APPID` / `WECHAT_SECRET`
-  - 小程序后台「服务器域名」配置后端 HTTPS 域名
+- [x] **微信小程序登录**（`POST /api/v1/auth/wx-login`，配 `WECHAT_APPID`/`WECHAT_SECRET` 即用）
+- [ ] **微信小程序发布**（基于现有 REST API，再补 .json、AppID、提审即可）
+- [ ] PC 端功能完善：键盘快捷键、列表筛选侧栏、详情页双栏布局
 - [ ] 站内信 / 卖家联系买家
 - [ ] 微信支付集成
 - [ ] 卖家认证 + 信用分

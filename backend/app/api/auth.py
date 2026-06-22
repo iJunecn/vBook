@@ -3,7 +3,7 @@ import secrets
 
 import httpx
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import or_
+from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user
@@ -43,9 +43,21 @@ def register(payload: UserCreate, db: Session = Depends(get_db)):
 
 @router.post("/login", response_model=TokenOut)
 def login(payload: UserLogin, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.username == payload.username).first()
+    """账号密码登录：`account` 字段支持用户名或邮箱，自动判别。"""
+    account = payload.account.strip()
+    # 用 or_ 一次性查用户名或邮箱；用 lower 让邮箱大小写不敏感
+    user = (
+        db.query(User)
+        .filter(
+            or_(
+                User.username == account,
+                func.lower(User.email) == account.lower(),
+            )
+        )
+        .first()
+    )
     if not user or not verify_password(payload.password, user.hashed_password):
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "用户名或密码错误")
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "用户名/邮箱或密码错误")
     if not user.is_active:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "账号已停用")
     token = create_access_token(user.id, {"username": user.username})

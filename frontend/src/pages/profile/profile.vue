@@ -75,7 +75,7 @@ function logout() {
     <view v-if="!userStore.isLogin" class="guest vb-card">
       <text class="logo">📚</text>
       <text class="vb-muted">登录后管理你的书单与订单</text>
-      <wd-button type="primary" @click="goLogin">微信一键登录</wd-button>
+      <wd-button type="primary" @click="goLogin">登录 / 注册</wd-button>
     </view>
 
     <template v-else>

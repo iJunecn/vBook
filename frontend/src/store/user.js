@@ -29,8 +29,15 @@ export const useUserStore = defineStore('user', {
       this._setAuth(data)
       return data
     },
+    /** 邮箱 / 用户名 + 密码登录（account 字段后端自动判别） */
     async login(payload) {
       const data = await authApi.login(payload)
+      this._setAuth(data)
+      return data
+    },
+    /** 邮箱注册（注册成功后后端会同时签发 token 自动登录） */
+    async register(payload) {
+      const data = await authApi.register(payload)
       this._setAuth(data)
       return data
     },

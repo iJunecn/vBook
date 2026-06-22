@@ -27,7 +27,8 @@ services:
   # H5 网站容器（当前主交付物；uni-app 同一份源码既能编 H5 也能编小程序）
   # - 对外暴露 6628:6628（直接用 6628 而非 80，省去 80 端口权限问题）
   # - 容器内 nginx 把 /api/ 与 /uploads/ 反代到 backend:6627
-  # - 构建期注入 VITE_API_HOST=http://localhost:6627，方便 H5 直连后端联调
+  # - 不再注入 VITE_API_HOST，浏览器走同源相对路径 '/api/v1'，
+  #   由 nginx 统一反代，彻底免 CORS，任意 IP 访问都能联通后端
   frontend:
     build:
       context: ./frontend

@@ -38,6 +38,12 @@
       }
     },
     {
+      "path": "pages/register/register",
+      "style": {
+        "navigationBarTitleText": "注册"
+      }
+    },
+    {
       "path": "pages/listing/detail",
       "style": {
         "navigationBarTitleText": "书单详情"
