@@ -5,7 +5,7 @@
  *  - 顶部 .pc-nav 用统一 header-bar 风格：扁平 + 半透明 + 居中容器
  *  - 列表网格从 1 列变 3 列（>= 1200px 时变 4 列）
  *  - 字号 / 圆角 / 阴影按桌面端比例放大
- *  - 隐藏 uni-app 自带的 navigationBar / tabBar
+ *  - 顶部 uni-app 自带 navigationBar 隐藏（用 .pc-nav 替代），底部 tabBar 保留可见
  *
  * 使用方式：在 App.vue 的全局 <style> 里 `@import './styles/desktop.scss';`
  * 由于移动端样式是 scoped 的，这里覆盖未 scoped 的元素 + 通用 .vb-* / .surface-card 类。
@@ -297,20 +297,23 @@ uni-page-body,
     font-weight: 600;
   }
 
-  /* ====== 隐藏 uni-app 自带的底部 tabBar 和顶部 navigationBar ====== */
+  /* ====== PC 端：保留底部 tabBar（H5 网页需要可见导航），
+     但把顶部 uni-app 自带 navBar 隐藏（已经用 .pc-nav 替代） ====== */
   .uni-tabbar {
-    display: none !important;
-  }
-  body {
-    padding-bottom: 0 !important;
-  }
-  uni-page-body {
-    padding-bottom: 0 !important;
+    display: flex !important;
+    border-top: 1px solid var(--vb-border) !important;
+    box-shadow: 0 -2px 8px rgba(16, 24, 40, 0.04) !important;
+    background: var(--vb-white) !important;
   }
   .uni-page-head,
   .uni-page-head-bg,
   .uni-page-head-fixed {
     display: none !important;
+  }
+  /* PC 端：顶部多预留 60px（pc-nav 高度），底部预留 tabBar 高度 */
+  uni-page-body {
+    padding-top: 60px !important;
+    padding-bottom: 56px !important;
   }
 }
 

@@ -106,28 +106,44 @@ page {
   box-shadow: 0 22px 40px rgba(44, 71, 99, 0.18);
 }
 
-/* ===== 表单输入 ===== */
+/* ===== 表单输入（vUSTB 风格：柔和灰底 + 12px 圆角 + focus 双层光晕） ===== */
 .input,
 input.vb-input {
   width: 100%;
   box-sizing: border-box;
-  background: var(--vb-white);
+  background: var(--vb-bg-soft);
   border: 1px solid var(--vb-border);
-  border-radius: 10px;
+  border-radius: 12px;
   padding: 12px 14px;
   font-size: 28rpx;
   color: var(--vb-ink-900);
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  font-family: inherit;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease,
+    background-color 0.15s ease;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.input:hover,
+input.vb-input:hover {
+  border-color: var(--vb-border-hover);
 }
 .input:focus,
 input.vb-input:focus {
   outline: none;
+  background: var(--vb-white);
   border-color: var(--vb-brand-600);
-  box-shadow: 0 0 0 3px rgba(47, 120, 186, 0.18);
+  box-shadow: 0 0 0 4px rgba(47, 120, 186, 0.18);
 }
 .input::placeholder,
 input.vb-input::placeholder {
   color: var(--vb-ink-400);
+}
+
+/* textarea 同行风格 */
+textarea.input {
+  min-height: 96px;
+  line-height: 1.55;
+  resize: vertical;
 }
 
 /* ===== 按钮 ===== */

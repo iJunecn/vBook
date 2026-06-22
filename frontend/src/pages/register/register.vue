@@ -5,9 +5,9 @@
  *  - email 标准邮箱
  *  - password 6-64 位
  *  - nickname / campus 可选
- * 成功后自动登录跳回首页
+ * 成功后自动登录跳到首页
  *
- * 视觉风格：与登录页一致的 auth-panel + glass-card
+ * 视觉对齐 vUSTB /login：label-wrapped input + 大圆角玻璃态面板 + 返回按钮
  */
 import { ref, computed } from 'vue'
 import { useUserStore } from '@/store/user'
@@ -55,11 +55,7 @@ async function onSubmit() {
     })
     uni.hideLoading()
     uni.showToast({ title: '注册成功，已登录', icon: 'success' })
-    setTimeout(() => {
-      const pages = getCurrentPages()
-      if (pages.length > 1) uni.navigateBack()
-      else uni.switchTab({ url: '/pages/index/index' })
-    }, 700)
+    setTimeout(goHome, 700)
   } catch (e) {
     uni.hideLoading()
     errMsg.value = e?.detail || '注册失败'
@@ -67,29 +63,51 @@ async function onSubmit() {
     loading.value = false
   }
 }
+
+function goLogin() {
+  uni.redirectTo({ url: '/pages/login/login' })
+}
+
+function goHome() {
+  uni.switchTab({ url: '/pages/index/index' })
+}
+
+function goBack() {
+  // 不允许栈里再卡一层登录
+  uni.switchTab({ url: '/pages/index/index' })
+}
 </script>
 
 <template>
   <view class="auth-shell">
+    <view class="back-bar">
+      <view class="back-btn" @tap="goBack">
+        <text class="back-arrow">←</text>
+        <text class="back-text">返回</text>
+      </view>
+    </view>
+
     <view class="auth-panel glass-card animate-slide-up">
       <view class="head">
-        <text class="name">注册账号</text>
-        <text class="slogan">邮箱 + 密码就能用，小程序和 H5 通用</text>
+        <text class="title">注册账号</text>
+        <text class="sub">邮箱 + 密码就能用，H5 和小程序通用</text>
       </view>
 
       <view class="form">
-        <view class="field">
-          <text class="lbl">用户名 <text class="req">*</text></text>
+        <label class="field">
+          <span class="lbl">用户名 <text class="req">*</text></span>
           <input
             v-model="form.username"
             class="input"
             placeholder="3-32 位，字母/数字/_/-"
             :maxlength="32"
             placeholder-class="ipt-ph"
+            confirm-type="next"
           />
-        </view>
-        <view class="field">
-          <text class="lbl">邮箱 <text class="req">*</text></text>
+        </label>
+
+        <label class="field">
+          <span class="lbl">邮箱 <text class="req">*</text></span>
           <input
             v-model="form.email"
             class="input"
@@ -97,10 +115,12 @@ async function onSubmit() {
             placeholder="example@x.edu.cn"
             :maxlength="120"
             placeholder-class="ipt-ph"
+            confirm-type="next"
           />
-        </view>
-        <view class="field">
-          <text class="lbl">密码 <text class="req">*</text></text>
+        </label>
+
+        <label class="field">
+          <span class="lbl">密码 <text class="req">*</text></span>
           <view class="pwd-row">
             <input
               v-model="form.password"
@@ -109,12 +129,16 @@ async function onSubmit() {
               placeholder="6-64 位"
               :maxlength="64"
               placeholder-class="ipt-ph"
+              confirm-type="next"
             />
-            <text class="toggle" @tap="showPwd = !showPwd">{{ showPwd ? '隐藏' : '显示' }}</text>
+            <text class="toggle" @tap="showPwd = !showPwd">
+              {{ showPwd ? '隐藏' : '显示' }}
+            </text>
           </view>
-        </view>
-        <view class="field">
-          <text class="lbl">确认密码 <text class="req">*</text></text>
+        </label>
+
+        <label class="field">
+          <span class="lbl">确认密码 <text class="req">*</text></span>
           <input
             v-model="form.password2"
             class="input"
@@ -122,28 +146,46 @@ async function onSubmit() {
             placeholder="再输一次"
             :maxlength="64"
             placeholder-class="ipt-ph"
+            confirm-type="next"
           />
-        </view>
+        </label>
+
         <view class="field-row">
-          <view class="field">
-            <text class="lbl">昵称（可选）</text>
-            <input v-model="form.nickname" class="input" placeholder="不填就用用户名" :maxlength="32" placeholder-class="ipt-ph" />
-          </view>
-          <view class="field">
-            <text class="lbl">校区（可选）</text>
-            <input v-model="form.campus" class="input" placeholder="例如：东校区" :maxlength="32" placeholder-class="ipt-ph" />
-          </view>
+          <label class="field">
+            <span class="lbl">昵称</span>
+            <input
+              v-model="form.nickname"
+              class="input"
+              placeholder="不填就用用户名"
+              :maxlength="32"
+              placeholder-class="ipt-ph"
+            />
+          </label>
+          <label class="field">
+            <span class="lbl">校区</span>
+            <input
+              v-model="form.campus"
+              class="input"
+              placeholder="例如：东校区"
+              :maxlength="32"
+              placeholder-class="ipt-ph"
+            />
+          </label>
         </view>
 
         <view v-if="errMsg" class="err">{{ errMsg }}</view>
 
-        <button class="btn-primary" :disabled="!canSubmit" @click="onSubmit">
+        <button
+          class="btn-primary submit"
+          :disabled="!canSubmit"
+          @click="onSubmit"
+        >
           {{ loading ? '注册中…' : '注册并登录' }}
         </button>
 
-        <view class="aux">
+        <view class="meta-row">
           <text class="muted">已有账号？</text>
-          <text class="link" @tap="uni.navigateBack()">返回登录</text>
+          <text class="link" @tap="goLogin">返回登录</text>
         </view>
       </view>
     </view>
@@ -152,38 +194,72 @@ async function onSubmit() {
 
 <style scoped lang="scss">
 .auth-shell {
+  position: relative;
   min-height: 100vh;
-  padding: 48rpx 32rpx 40rpx;
+  padding: 80rpx 32rpx 40rpx;
   display: flex;
   align-items: flex-start;
   justify-content: center;
 }
+
+.back-bar {
+  position: absolute;
+  top: 24rpx;
+  left: 24rpx;
+  z-index: 10;
+}
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6rpx;
+  padding: 12rpx 22rpx;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.75);
+  border: 1px solid var(--vb-border);
+  box-shadow: var(--vb-shadow-sm);
+  font-size: 26rpx;
+  color: var(--vb-ink-700);
+  font-weight: 500;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.back-btn:active {
+  background: var(--vb-bg-mute);
+}
+.back-arrow {
+  font-size: 30rpx;
+  line-height: 1;
+  color: var(--vb-brand-700);
+}
+
 .auth-panel {
   width: 100%;
-  max-width: 580rpx;
-  padding: 48rpx 40rpx;
+  max-width: 540rpx;
+  padding: 48rpx 44rpx;
+  border-radius: 26px;
 }
 .head {
-  margin-bottom: 36rpx;
   text-align: center;
+  margin-bottom: 36rpx;
 }
-.name {
+.title {
   display: block;
-  font-size: 38rpx;
+  font-size: 34rpx;
   font-weight: 700;
   color: var(--vb-heading);
-  letter-spacing: 0.02em;
+  letter-spacing: 0.01em;
+  margin-bottom: 8rpx;
 }
-.slogan {
+.sub {
   display: block;
   font-size: 24rpx;
   color: var(--vb-ink-500);
-  margin-top: 12rpx;
 }
+
 .form {
   display: flex;
   flex-direction: column;
-  gap: 22rpx;
+  gap: 20rpx;
 }
 .field {
   display: flex;
@@ -193,12 +269,12 @@ async function onSubmit() {
 }
 .field-row {
   display: flex;
-  gap: 20rpx;
+  gap: 18rpx;
 }
 .lbl {
-  font-size: 24rpx;
-  color: var(--vb-ink-700);
+  font-size: 26rpx;
   font-weight: 500;
+  color: var(--vb-ink-700);
 }
 .req {
   color: var(--vb-danger);
@@ -214,7 +290,7 @@ async function onSubmit() {
   font-size: 24rpx;
   color: var(--vb-brand-700);
   font-weight: 500;
-  cursor: pointer;
+  padding: 6rpx 10rpx;
 }
 .ipt-ph {
   color: var(--vb-ink-400);
@@ -225,8 +301,20 @@ async function onSubmit() {
   background: #fdeaea;
   padding: 14rpx 18rpx;
   border-radius: 10rpx;
+  border: 1px solid rgba(220, 38, 38, 0.18);
 }
-.aux {
+.submit {
+  width: 100%;
+  padding: 22rpx 0;
+  font-size: 28rpx;
+  border: none;
+  font-weight: 600;
+  margin-top: 8rpx;
+}
+.submit::after {
+  border: none;
+}
+.meta-row {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -242,19 +330,10 @@ async function onSubmit() {
   font-weight: 600;
 }
 
-.btn-primary {
-  width: 100%;
-  border: none;
-  font-family: inherit;
-}
-.btn-primary::after {
-  border: none;
-}
-
-@media (max-width: 520px) {
+@media (max-width: 540px) {
   .field-row {
     flex-direction: column;
-    gap: 22rpx;
+    gap: 20rpx;
   }
 }
 </style>

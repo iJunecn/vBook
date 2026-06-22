@@ -23,7 +23,8 @@ const list = computed(() => (tab.value === 'bought' ? bought.value : sold.value)
 onShow(() => {
   if (!userStore.isLogin) {
     uni.showToast({ title: '请先登录', icon: 'none' })
-    setTimeout(() => uni.navigateTo({ url: '/pages/login/login' }), 300)
+    // 用 reLaunch 替换整栈，避免浏览器后退时回到本页再次触发跳转（无限循环）
+    setTimeout(() => uni.reLaunch({ url: '/pages/login/login?from=orders' }), 300)
     return
   }
   load()

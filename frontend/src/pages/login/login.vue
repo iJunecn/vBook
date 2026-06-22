@@ -1,11 +1,11 @@
 <script setup>
 /**
- * 登录页 - 三种登录方式
- *  1. 邮箱/用户名 + 密码（账号体系，H5 和小程序都可用）
- *  2. 注册账号（跳到 /pages/register/register）
- *  3. 微信一键登录（仅小程序 / 已配置 WECHAT_APPID 时可用）
- *
- * 视觉风格：vUSTB auth-panel —— 玻璃态圆角大卡 + 居中布局 + 标签式表单
+ * 登录页 - 邮箱 / 用户名 + 密码（也可微信一键登录）
+ * 视觉对齐 vUSTB /login：
+ *  - 顶部简洁文字 header（无大 emoji）
+ *  - <label> 包裹输入 + 14px span 标签
+ *  - 玻璃态 auth-panel + 26px 大圆角
+ *  - 左上角返回按钮（H5/PC 上确保可以离开登录页）
  */
 import { ref, computed } from 'vue'
 import { useUserStore } from '@/store/user'
@@ -32,7 +32,7 @@ async function onPasswordLogin() {
     await userStore.login({ account: account.value.trim(), password: password.value })
     uni.hideLoading()
     uni.showToast({ title: '登录成功', icon: 'success' })
-    setTimeout(goBack, 500)
+    setTimeout(goHome, 500)
   } catch (e) {
     uni.hideLoading()
     errMsg.value = e?.detail || '登录失败'
@@ -49,7 +49,7 @@ async function onWechatLogin() {
     await userStore.wechatLogin()
     uni.hideLoading()
     uni.showToast({ title: '登录成功', icon: 'success' })
-    setTimeout(goBack, 500)
+    setTimeout(goHome, 500)
   } catch (e) {
     uni.hideLoading()
     errMsg.value = e?.detail || '微信登录失败'
@@ -62,36 +62,49 @@ function goRegister() {
   uni.navigateTo({ url: '/pages/register/register' })
 }
 
+function goHome() {
+  // 登录成功 / 主动离开：回到首页 tab，跳过登录栈
+  uni.switchTab({ url: '/pages/index/index' })
+}
+
 function goBack() {
-  const pages = getCurrentPages()
-  if (pages.length > 1) uni.navigateBack()
-  else uni.switchTab({ url: '/pages/index/index' })
+  // 用户主动返回：用 switchTab 到首页（登录页不允许在栈里卡住）
+  uni.switchTab({ url: '/pages/index/index' })
 }
 </script>
 
 <template>
   <view class="auth-shell">
+    <!-- 左上角返回按钮（H5 / PC 端尤为关键：手机物理返回 / 浏览器后退都能用） -->
+    <view class="back-bar">
+      <view class="back-btn" @tap="goBack">
+        <text class="back-arrow">←</text>
+        <text class="back-text">返回</text>
+      </view>
+    </view>
+
     <view class="auth-panel glass-card animate-slide-up">
       <view class="head">
-        <text class="logo">📚</text>
-        <text class="name">贝壳易书</text>
-        <text class="slogan">欢迎回来 · 校园二手书流转平台</text>
+        <text class="title">欢迎回来</text>
+        <text class="sub">登录你的贝壳易书账户</text>
       </view>
 
       <!-- 邮箱 / 用户名 + 密码登录 -->
       <view class="form">
-        <view class="field">
-          <text class="lbl">账号</text>
+        <label class="field">
+          <span class="lbl">账号</span>
           <input
             v-model="account"
             class="input"
             placeholder="邮箱或用户名"
             :maxlength="120"
             placeholder-class="ipt-ph"
+            confirm-type="next"
           />
-        </view>
-        <view class="field">
-          <text class="lbl">密码</text>
+        </label>
+
+        <label class="field">
+          <span class="lbl">密码</span>
           <view class="pwd-row">
             <input
               v-model="password"
@@ -100,17 +113,26 @@ function goBack() {
               placeholder="至少 6 位"
               :maxlength="64"
               placeholder-class="ipt-ph"
+              confirm-type="done"
+              @confirm="onPasswordLogin"
             />
-            <text class="toggle" @tap="showPwd = !showPwd">{{ showPwd ? '隐藏' : '显示' }}</text>
+            <text class="toggle" @tap="showPwd = !showPwd">
+              {{ showPwd ? '隐藏' : '显示' }}
+            </text>
           </view>
-        </view>
+        </label>
+
         <view v-if="errMsg" class="err">{{ errMsg }}</view>
 
-        <button class="btn-primary" :disabled="loading" @click="onPasswordLogin">
-          {{ loading ? '登录中…' : '登录' }}
+        <button
+          class="btn-primary submit"
+          :disabled="loading"
+          @click="onPasswordLogin"
+        >
+          {{ loading ? '登录中…' : '登 录' }}
         </button>
 
-        <view class="aux">
+        <view class="meta-row">
           <text class="muted">还没有账号？</text>
           <text class="link" @tap="goRegister">立即注册</text>
         </view>
@@ -128,45 +150,78 @@ function goBack() {
         <button class="btn-ghost" @click="onWechatLogin">微信一键登录</button>
         <text class="tip">登录即表示同意用户协议与隐私政策</text>
       </view>
-      <text v-else class="tip">登录即表示同意用户协议与隐私政策</text>
+      <text v-else class="tip">登录即表示同意《用户协议》与《隐私政策》</text>
     </view>
   </view>
 </template>
 
 <style scoped lang="scss">
 .auth-shell {
+  position: relative;
   min-height: 100vh;
   padding: 80rpx 32rpx 40rpx;
   display: flex;
   align-items: center;
   justify-content: center;
 }
+
+/* ===== 返回按钮（H5 / PC 端永远可见，不依赖 uni-app 原生 navBar） ===== */
+.back-bar {
+  position: absolute;
+  top: 24rpx;
+  left: 24rpx;
+  z-index: 10;
+}
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6rpx;
+  padding: 12rpx 22rpx;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.75);
+  border: 1px solid var(--vb-border);
+  box-shadow: var(--vb-shadow-sm);
+  font-size: 26rpx;
+  color: var(--vb-ink-700);
+  font-weight: 500;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.back-btn:active {
+  background: var(--vb-bg-mute);
+}
+.back-arrow {
+  font-size: 30rpx;
+  line-height: 1;
+  color: var(--vb-brand-700);
+}
+
+/* ===== 玻璃态卡 ===== */
 .auth-panel {
   width: 100%;
-  max-width: 520rpx;
-  padding: 56rpx 40rpx 48rpx;
+  max-width: 460rpx;
+  padding: 56rpx 44rpx 48rpx;
+  border-radius: 26px;
 }
 .head {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-bottom: 48rpx;
+  text-align: center;
+  margin-bottom: 40rpx;
 }
-.logo {
-  font-size: 80rpx;
-  margin-bottom: 12rpx;
-}
-.name {
+.title {
+  display: block;
   font-size: 36rpx;
   font-weight: 700;
   color: var(--vb-heading);
-  letter-spacing: 0.02em;
+  letter-spacing: 0.01em;
+  margin-bottom: 8rpx;
 }
-.slogan {
+.sub {
+  display: block;
   font-size: 24rpx;
   color: var(--vb-ink-500);
-  margin-top: 10rpx;
 }
+
+/* ===== 表单 ===== */
 .form {
   display: flex;
   flex-direction: column;
@@ -178,9 +233,9 @@ function goBack() {
   gap: 10rpx;
 }
 .lbl {
-  font-size: 24rpx;
-  color: var(--vb-ink-700);
+  font-size: 26rpx;
   font-weight: 500;
+  color: var(--vb-ink-700);
 }
 .pwd-row {
   position: relative;
@@ -193,19 +248,37 @@ function goBack() {
   font-size: 24rpx;
   color: var(--vb-brand-700);
   font-weight: 500;
-  cursor: pointer;
+  padding: 6rpx 10rpx;
 }
 .ipt-ph {
   color: var(--vb-ink-400);
 }
+
+/* ===== 错误条 ===== */
 .err {
   font-size: 24rpx;
   color: var(--vb-danger);
   background: #fdeaea;
   padding: 14rpx 18rpx;
   border-radius: 10rpx;
+  border: 1px solid rgba(220, 38, 38, 0.18);
 }
-.aux {
+
+/* ===== 提交按钮 ===== */
+.submit {
+  width: 100%;
+  padding: 22rpx 0;
+  font-size: 28rpx;
+  border: none;
+  font-weight: 600;
+  margin-top: 8rpx;
+}
+.submit::after {
+  border: none;
+}
+
+/* ===== 底部辅助行 ===== */
+.meta-row {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -220,11 +293,13 @@ function goBack() {
   color: var(--vb-brand-700);
   font-weight: 600;
 }
+
+/* ===== 分隔线 ===== */
 .divider {
   display: flex;
   align-items: center;
   gap: 16rpx;
-  margin: 40rpx 0 24rpx;
+  margin: 36rpx 0 22rpx;
 }
 .line {
   flex: 1;
@@ -234,30 +309,29 @@ function goBack() {
 .txt {
   font-size: 22rpx;
   color: var(--vb-ink-400);
+  letter-spacing: 0.04em;
 }
+
+/* ===== 微信登录 ===== */
 .wechat-wrap {
   display: flex;
   flex-direction: column;
-  gap: 16rpx;
+  gap: 14rpx;
   align-items: center;
+}
+.wechat-wrap .btn-ghost {
+  width: 100%;
+  border: none;
+  font-family: inherit;
+}
+.wechat-wrap .btn-ghost::after {
+  border: none;
 }
 .tip {
   display: block;
   font-size: 22rpx;
   text-align: center;
   color: var(--vb-ink-400);
-  margin-top: 8rpx;
-}
-
-/* 让 button 元素继承 button reset，撑满宽度 */
-.btn-primary,
-.btn-ghost {
-  width: 100%;
-  border: none;
-  font-family: inherit;
-}
-.btn-primary::after,
-.btn-ghost::after {
-  border: none;
+  margin-top: 6rpx;
 }
 </style>

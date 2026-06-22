@@ -26,7 +26,8 @@ function go(path, type) {
 }
 
 function goLogin() {
-  uni.navigateTo({ url: '/pages/login/login' })
+  // 用 reLaunch 替换整栈，避免浏览器后退回到本页造成死循环
+  uni.reLaunch({ url: '/pages/login/login?from=pcnav' })
 }
 </script>
 
