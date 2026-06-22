@@ -1,7 +1,8 @@
 # 贝壳易书 · 前端（uni-app / 微信小程序 / PC 网页）
 
 基于 **uni-app (Vue 3 + Vite)** 的前端，**主交付为 H5 网站**（同一套源码可编译为微信小程序）。
-UI 组件库为 **wot-design-uni**，状态管理为 **Pinia**，登录支持**邮箱 / 用户名 + 密码**（H5 / 小程序通用），并兼容**微信一键登录**。
+UI 设计借鉴 **[vUSTB (像素北科)](https://github.com/iJunecn/vUSTB)** 的视觉语言：沉稳学术蓝 `#2f78ba`、圆角 12px 卡片、玻璃态登录面板、扁平 PC 顶部导航。
+组件库为 **wot-design-uni**，状态管理为 **Pinia**，登录支持**邮箱 / 用户名 + 密码**（H5 / 小程序通用），并兼容**微信一键登录**。
 
 ## 环境准备
 - [Bun](https://bun.sh)（包管理）
@@ -69,27 +70,56 @@ src/
 ├── store/user.js       # Pinia 用户态（uni.*StorageSync 持久化 + 登录 / 注册 / 微信）
 ├── components/ListingCard.vue
 ├── pages/
-│   ├── index/index.vue     # 首页：浏览 + 搜索 + 校区筛选 + 分页
-│   ├── sell/sell.vue       # 卖书：选图 → AI 识别 → 核对编辑 → 发布
-│   ├── listing/detail.vue  # 书单详情：购买 / 卖家管理
-│   ├── orders/orders.vue   # 订单：我买的 / 我卖的
-│   ├── profile/profile.vue # 我的：资料编辑 + 我的发布
-│   ├── login/login.vue     # 邮箱 / 用户名 + 密码登录 + 微信一键登录（小程序）
-│   └── register/register.vue   # 邮箱注册
+│   ├── index/index.vue     # 首页：hero 渐变卡 + 搜索 + 校区筛选 + 3-4 列网格
+│   ├── sell/sell.vue       # 卖书：步骤指示 → 拍照 → 核对 → 发布
+│   ├── listing/detail.vue  # 书单详情：封面 + 头卡 + 书目清单（购买 / 卖家管理）
+│   ├── orders/orders.vue   # 订单：我买的 / 我卖的 tab 切换 + 状态徽章
+│   ├── profile/profile.vue # 我的：用户卡 + 数据概览 + 我的发布
+│   ├── login/login.vue     # 玻璃态 auth-panel + 邮箱 / 用户名 + 密码 + 微信
+│   └── register/register.vue   # 玻璃态 auth-panel + 邮箱注册
 ├── utils/format.js     # 价格/时间格式化 + mediaUrl（补全 /uploads 绝对地址）
 └── styles/
-    ├── theme.scss      # 蓝白主题 CSS 变量
+    ├── theme.scss      # vUSTB 风格 CSS 变量 + surface-card / glass-card / btn-primary / btn-ghost / input 工具类
     └── desktop.scss    # PC 端响应式（>= 768px 顶部导航 + 3-4 列网格 + 居中容器）
 ```
+
+## 设计语言（借鉴 vUSTB）
+
+| 元素 | 取值 |
+| --- | --- |
+| 主色 | `#2f78ba`（沉稳学术蓝）/ hover `#285e8d` |
+| 强调色 | `#5d7fa6`（柔和紫蓝） |
+| 背景 | `#f7f8fb` / `#f0f2f7`（软）/ `#e6e9f0`（静） |
+| 边框 | `#dedde5` |
+| 文本 | `#12161c`（标题）/ `#1f2937`（正文）/ `#667589`（副文本） |
+| 状态 | success `#22c55e` / danger `#dc2626` / warning `#eab308` |
+| 圆角 | 8px（小）/ 12px（卡）/ 22px（玻璃登录卡） |
+| 阴影 | sm `0 2px 6px rgba(16,24,40,.05)` / md `0 8px 24px rgba(16,24,40,.08)` / lg `0 14px 30px rgba(66,82,105,.13)` |
+| 字体 | HarmonyOS Sans SC → Microsoft YaHei UI → PingFang SC → system-ui |
+
+### 通用工具类（在任意元素上加 class 即可使用）
+
+| 类名 | 用途 |
+| --- | --- |
+| `.surface-card` | 标准卡片：12px 圆角 + 边框 + md 阴影；加 `.hoverable` 启用悬浮上浮 |
+| `.glass-card` | 玻璃态卡片：半透明白 + `backdrop-filter: blur(14px) saturate(140%)` + 22px 圆角，登录/注册页用 |
+| `.flat-card` | 扁平卡片（无悬浮），单纯边框 + sm 阴影 |
+| `.input` | 表单输入框：白底 + 10px 圆角 + focus 时 brand 蓝边框 + 0 0 0 3px 蓝光环 |
+| `.btn-primary` | 主按钮：brand-600 蓝底白字 + 10px 圆角 + hover 加深 |
+| `.btn-ghost` | 次按钮：bg-soft 浅灰底 + 边框 + hover 加深 |
+| `.btn-danger` | 危险按钮：红色，用于下架、删除 |
+| `.section-kicker` | 章节小标题（uppercase + letter-spacing） |
+| `.animate-slide-up` / `.animate-fade-in` | 入场动画 |
 
 ## PC 端适配
 
 打开浏览器宽度 ≥ 768px 时自动启用（详见 `src/styles/desktop.scss`）：
 
-- **顶部 PC 导航**：覆盖 uni-app 自带 navigationBar 与底部 tabBar，导航到 4 个主 tab
+- **顶部 PC 导航**：覆盖 uni-app 自带 navigationBar 与底部 tabBar；左侧品牌 logo + 中部菜单 + 右侧用户胶囊/登录按钮
 - **居中容器**：max-width 1024px / 1200px，内容居中显示
 - **多列网格**：首页 / 我的发布 从 2 列变 3 列（≥ 1200px 时变 4 列）
 - **字号 / 间距**：核心文本 / 表单 / 按钮统一放大到 PC 比例
+- **登录/注册卡**：从 520rpx 居中放大到 460px，玻璃态 + 大圆角
 - **卡片 hover**：悬浮上浮 + 阴影增强
 
 移动端（< 768px）行为不变，uni-app 自带底部 tabBar 继续生效。

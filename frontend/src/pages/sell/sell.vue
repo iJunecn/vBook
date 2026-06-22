@@ -1,4 +1,8 @@
 <script setup>
+/**
+ * 卖书页 - 三步流程：拍照 → 核对书单 → 发布
+ * 视觉：vUSTB 风格 —— 步骤指示器 + surface-card + btn-primary
+ */
 import { ref, computed } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { bookApi } from '@/api'
@@ -155,82 +159,122 @@ function reset() {
 <template>
   <view class="page">
     <!-- 步骤指示 -->
-    <view class="steps">
-      <text :class="['step', step === 'pick' ? 'on' : 'done']">1 拍照</text>
-      <text :class="['step', step === 'edit' ? 'on' : step === 'publish' ? 'done' : '']">2 核对</text>
-      <text :class="['step', step === 'publish' ? 'on' : '']">3 发布</text>
+    <view class="steps surface-card">
+      <view :class="['step', step === 'pick' ? 'on' : 'done']">
+        <text class="step-no">1</text>
+        <text class="step-label">拍照</text>
+      </view>
+      <text class="step-line" />
+      <view :class="['step', step === 'edit' ? 'on' : (step === 'publish' ? 'done' : '')]">
+        <text class="step-no">2</text>
+        <text class="step-label">核对</text>
+      </view>
+      <text class="step-line" />
+      <view :class="['step', step === 'publish' ? 'on' : '']">
+        <text class="step-no">3</text>
+        <text class="step-label">发布</text>
+      </view>
     </view>
 
     <!-- 第一步：选图 -->
-    <view v-if="step === 'pick'" class="pick vb-card">
-      <view class="pick-inner" @tap="chooseImage">
-        <text class="pick-icon">📷</text>
-        <text class="pick-title">上传一摞书的书脊照片</text>
-        <text class="vb-muted">支持 JPG / PNG / WEBP，单张 ≤ 20MB</text>
-      </view>
+    <view v-if="step === 'pick'" class="pick surface-card hoverable" @tap="chooseImage">
+      <text class="pick-icon">📷</text>
+      <text class="pick-title">上传一摞书的书脊照片</text>
+      <text class="pick-tip muted">支持 JPG / PNG / WEBP，单张 ≤ 20MB</text>
     </view>
 
     <!-- 第二步：核对书单 -->
     <template v-else-if="step === 'edit'">
-      <image v-if="coverPath" :src="coverPath" mode="widthFix" class="preview" />
-
-      <view class="bulk vb-card">
-        <input v-model="bulkPrice" type="digit" class="bulk-input" placeholder="统一定价" />
-        <wd-button size="small" @click="applyBulkPrice">应用到全部</wd-button>
-        <wd-button size="small" plain @click="addBook">+ 加一本</wd-button>
+      <view v-if="coverPath" class="preview-wrap surface-card">
+        <image :src="coverPath" mode="widthFix" class="preview" />
       </view>
 
-      <view v-for="(b, idx) in books" :key="idx" class="book vb-card">
+      <view class="bulk surface-card">
+        <text class="bulk-icon">💰</text>
+        <input v-model="bulkPrice" type="digit" class="input bulk-input" placeholder="统一定价（元）" />
+        <button class="btn-ghost bulk-btn" @click="applyBulkPrice">应用</button>
+        <button class="btn-primary bulk-btn" @click="addBook">+ 加一本</button>
+      </view>
+
+      <view v-for="(b, idx) in books" :key="idx" class="book surface-card">
         <view class="book-head">
           <text class="book-no">第 {{ idx + 1 }} 本</text>
           <text class="del" @tap="removeBook(idx)">删除</text>
         </view>
-        <input v-model="b.title" class="f" placeholder="书名（必填）" />
-        <view class="row2">
-          <input v-model="b.author" class="f half" placeholder="作者" />
-          <input v-model="b.publisher" class="f half" placeholder="出版社" />
+        <view class="field">
+          <text class="field-label">书名 <text class="req">*</text></text>
+          <input v-model="b.title" class="input" placeholder="必填" />
         </view>
         <view class="row2">
-          <input v-model="b.isbn" class="f half" placeholder="ISBN" />
-          <input v-model="b.edition" class="f half" placeholder="版次" />
+          <view class="field">
+            <text class="field-label">作者</text>
+            <input v-model="b.author" class="input" placeholder="作者" />
+          </view>
+          <view class="field">
+            <text class="field-label">出版社</text>
+            <input v-model="b.publisher" class="input" placeholder="出版社" />
+          </view>
         </view>
-        <input v-model="b.price" type="digit" class="f" placeholder="价格" />
+        <view class="row2">
+          <view class="field">
+            <text class="field-label">ISBN</text>
+            <input v-model="b.isbn" class="input" placeholder="ISBN" />
+          </view>
+          <view class="field">
+            <text class="field-label">版次</text>
+            <input v-model="b.edition" class="input" placeholder="版次" />
+          </view>
+        </view>
+        <view class="field">
+          <text class="field-label">价格（元）</text>
+          <input v-model="b.price" type="digit" class="input" placeholder="价格" />
+        </view>
       </view>
 
-      <view class="summary vb-card">
-        <text>共 {{ availableBooks.length }} 本</text>
-        <text class="vb-price">合计 ¥{{ totalPrice.toFixed(2) }}</text>
+      <view class="summary surface-card">
+        <text class="muted">共 {{ availableBooks.length }} 本</text>
+        <text class="price">合计 ¥{{ totalPrice.toFixed(2) }}</text>
       </view>
 
       <view class="footer-btns">
-        <wd-button plain block @click="reset">重新拍照</wd-button>
-        <wd-button type="primary" block @click="toPublish">下一步</wd-button>
+        <button class="btn-ghost" @click="reset">重新拍照</button>
+        <button class="btn-primary" @click="toPublish">下一步</button>
       </view>
     </template>
 
     <!-- 第三步：发布信息 -->
     <template v-else>
-      <view class="form vb-card">
-        <text class="field-label">书单标题</text>
-        <input v-model="meta.title" class="f" placeholder="例如：考研数学全套 9 成新" />
-
-        <text class="field-label">描述（可选）</text>
-        <textarea v-model="meta.description" class="f area" placeholder="成色、使用情况、交易方式等" />
-
-        <text class="field-label">校区（可选）</text>
-        <input v-model="meta.campus" class="f" placeholder="例如：东校区" />
-
-        <text class="field-label">默认单价</text>
-        <input v-model="meta.default_price" type="digit" class="f" placeholder="5" />
+      <view class="form surface-card">
+        <view class="field">
+          <text class="field-label">书单标题 <text class="req">*</text></text>
+          <input v-model="meta.title" class="input" placeholder="例如：考研数学全套 9 成新" />
+        </view>
+        <view class="field">
+          <text class="field-label">描述（可选）</text>
+          <textarea v-model="meta.description" class="input area" placeholder="成色、使用情况、交易方式等" />
+        </view>
+        <view class="row2">
+          <view class="field">
+            <text class="field-label">校区（可选）</text>
+            <input v-model="meta.campus" class="input" placeholder="例如：东校区" />
+          </view>
+          <view class="field">
+            <text class="field-label">默认单价（元）</text>
+            <input v-model="meta.default_price" type="digit" class="input" placeholder="5" />
+          </view>
+        </view>
       </view>
 
-      <view class="summary vb-card">
-        <text>{{ availableBooks.length }} 本 · 合计 ¥{{ totalPrice.toFixed(2) }}</text>
+      <view class="summary surface-card">
+        <text class="muted">{{ availableBooks.length }} 本</text>
+        <text class="price">合计 ¥{{ totalPrice.toFixed(2) }}</text>
       </view>
 
       <view class="footer-btns">
-        <wd-button plain block @click="step = 'edit'">上一步</wd-button>
-        <wd-button type="primary" block :loading="submitting" @click="submit">确认发布</wd-button>
+        <button class="btn-ghost" @click="step = 'edit'">上一步</button>
+        <button class="btn-primary" :disabled="submitting" @click="submit">
+          {{ submitting ? '发布中…' : '确认发布' }}
+        </button>
       </view>
     </template>
   </view>
@@ -239,32 +283,75 @@ function reset() {
 <style scoped lang="scss">
 .page {
   padding: 24rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
 }
+
+/* ===== Steps ===== */
 .steps {
   display: flex;
-  justify-content: space-around;
-  margin-bottom: 24rpx;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18rpx 24rpx;
+  border-radius: 12px;
 }
 .step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6rpx;
+  flex: 0 0 auto;
+}
+.step-no {
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   font-size: 26rpx;
-  color: var(--vb-ink-300);
-}
-.step.on {
-  color: var(--vb-brand-600);
   font-weight: 700;
+  background: var(--vb-bg-mute);
+  color: var(--vb-ink-400);
 }
-.step.done {
+.step-label {
+  font-size: 22rpx;
+  color: var(--vb-ink-400);
+}
+.step.on .step-no {
+  background: var(--vb-brand-600);
+  color: #fff;
+  box-shadow: 0 4rpx 12rpx rgba(47, 120, 186, 0.3);
+}
+.step.on .step-label {
+  color: var(--vb-brand-700);
+  font-weight: 600;
+}
+.step.done .step-no {
+  background: var(--vb-success);
+  color: #fff;
+}
+.step.done .step-label {
   color: var(--vb-ink-700);
 }
-.pick {
-  padding: 0;
+.step-line {
+  flex: 1;
+  height: 2rpx;
+  background: var(--vb-border);
+  margin: 0 12rpx;
+  margin-bottom: 24rpx;
 }
-.pick-inner {
+
+/* ===== Pick ===== */
+.pick {
   padding: 96rpx 0;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12rpx;
+  gap: 14rpx;
+  border-radius: 16px;
+  text-align: center;
 }
 .pick-icon {
   font-size: 96rpx;
@@ -272,86 +359,133 @@ function reset() {
 .pick-title {
   font-size: 30rpx;
   font-weight: 600;
+  color: var(--vb-heading);
+}
+.pick-tip {
+  font-size: 22rpx;
+}
+.muted {
+  color: var(--vb-ink-500);
+}
+
+/* ===== Preview ===== */
+.preview-wrap {
+  padding: 0;
+  overflow: hidden;
 }
 .preview {
   width: 100%;
-  border-radius: 16rpx;
-  margin-bottom: 20rpx;
+  display: block;
 }
+
+/* ===== Bulk ===== */
 .bulk {
   display: flex;
   align-items: center;
-  gap: 16rpx;
-  padding: 18rpx;
-  margin-bottom: 20rpx;
+  gap: 12rpx;
+  padding: 18rpx 20rpx;
+  border-radius: 12px;
+}
+.bulk-icon {
+  font-size: 28rpx;
 }
 .bulk-input {
   flex: 1;
-  border: 1rpx solid var(--vb-brand-100);
-  border-radius: 12rpx;
-  padding: 12rpx 16rpx;
-  font-size: 26rpx;
 }
+.bulk-btn {
+  padding: 10rpx 20rpx;
+  font-size: 24rpx;
+  border: none;
+}
+.bulk-btn::after {
+  border: none;
+}
+
+/* ===== Book ===== */
 .book {
-  padding: 20rpx;
-  margin-bottom: 20rpx;
+  padding: 22rpx 24rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 14rpx;
+  border-radius: 12px;
 }
 .book-head {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 12rpx;
+  align-items: center;
 }
 .book-no {
   font-size: 24rpx;
-  color: var(--vb-brand-600);
+  color: var(--vb-brand-700);
   font-weight: 600;
+  padding: 4rpx 14rpx;
+  background: var(--vb-brand-50);
+  border-radius: 999px;
 }
 .del {
   font-size: 24rpx;
-  color: #e23d3d;
+  color: var(--vb-danger);
+  font-weight: 500;
 }
-.f {
-  width: 100%;
-  box-sizing: border-box;
-  border: 1rpx solid var(--vb-brand-100);
-  border-radius: 12rpx;
-  padding: 16rpx;
-  font-size: 26rpx;
-  margin-bottom: 12rpx;
-  background: #fff;
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+  flex: 1;
+}
+.field-label {
+  font-size: 22rpx;
+  color: var(--vb-ink-700);
+  font-weight: 500;
+}
+.req {
+  color: var(--vb-danger);
 }
 .row2 {
   display: flex;
-  gap: 12rpx;
-}
-.half {
-  flex: 1;
+  gap: 14rpx;
 }
 .area {
-  height: 140rpx;
+  min-height: 140rpx;
+  line-height: 1.5;
 }
-.field-label {
-  display: block;
-  font-size: 24rpx;
-  color: var(--vb-ink-700);
-  margin-bottom: 8rpx;
-}
-.form {
-  padding: 20rpx;
-  margin-bottom: 20rpx;
-}
+
+/* ===== Summary ===== */
 .summary {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   padding: 24rpx;
-  margin-bottom: 20rpx;
-  font-size: 28rpx;
+  border-radius: 12px;
+  font-size: 26rpx;
 }
+.price {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: var(--vb-danger);
+}
+
+/* ===== Form ===== */
+.form {
+  padding: 24rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 18rpx;
+  border-radius: 12px;
+}
+
+/* ===== Footer buttons ===== */
 .footer-btns {
   display: flex;
-  gap: 20rpx;
+  gap: 16rpx;
 }
 .footer-btns > * {
   flex: 1;
+  padding: 18rpx;
+  border: none;
+  font-size: 28rpx;
+}
+.footer-btns > ::after {
+  border: none;
 }
 </style>

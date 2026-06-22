@@ -6,6 +6,8 @@
  *  - password 6-64 位
  *  - nickname / campus 可选
  * 成功后自动登录跳回首页
+ *
+ * 视觉风格：与登录页一致的 auth-panel + glass-card
  */
 import { ref, computed } from 'vue'
 import { useUserStore } from '@/store/user'
@@ -68,11 +70,11 @@ async function onSubmit() {
 </script>
 
 <template>
-  <view class="page">
-    <view class="card">
+  <view class="auth-shell">
+    <view class="auth-panel glass-card animate-slide-up">
       <view class="head">
-        <text class="title">注册账号</text>
-        <text class="sub vb-muted">邮箱 + 密码就能用，小程序和 H5 通用</text>
+        <text class="name">注册账号</text>
+        <text class="slogan">邮箱 + 密码就能用，小程序和 H5 通用</text>
       </view>
 
       <view class="form">
@@ -80,7 +82,7 @@ async function onSubmit() {
           <text class="lbl">用户名 <text class="req">*</text></text>
           <input
             v-model="form.username"
-            class="ipt"
+            class="input"
             placeholder="3-32 位，字母/数字/_/-"
             :maxlength="32"
             placeholder-class="ipt-ph"
@@ -90,7 +92,7 @@ async function onSubmit() {
           <text class="lbl">邮箱 <text class="req">*</text></text>
           <input
             v-model="form.email"
-            class="ipt"
+            class="input"
             type="text"
             placeholder="example@x.edu.cn"
             :maxlength="120"
@@ -102,7 +104,7 @@ async function onSubmit() {
           <view class="pwd-row">
             <input
               v-model="form.password"
-              class="ipt"
+              class="input"
               :password="!showPwd"
               placeholder="6-64 位"
               :maxlength="64"
@@ -115,49 +117,33 @@ async function onSubmit() {
           <text class="lbl">确认密码 <text class="req">*</text></text>
           <input
             v-model="form.password2"
-            class="ipt"
+            class="input"
             :password="!showPwd"
             placeholder="再输一次"
             :maxlength="64"
             placeholder-class="ipt-ph"
           />
         </view>
-        <view class="field">
-          <text class="lbl">昵称（可选）</text>
-          <input
-            v-model="form.nickname"
-            class="ipt"
-            placeholder="不填就用用户名"
-            :maxlength="32"
-            placeholder-class="ipt-ph"
-          />
-        </view>
-        <view class="field">
-          <text class="lbl">校区（可选）</text>
-          <input
-            v-model="form.campus"
-            class="ipt"
-            placeholder="例如：东校区"
-            :maxlength="32"
-            placeholder-class="ipt-ph"
-          />
+        <view class="field-row">
+          <view class="field">
+            <text class="lbl">昵称（可选）</text>
+            <input v-model="form.nickname" class="input" placeholder="不填就用用户名" :maxlength="32" placeholder-class="ipt-ph" />
+          </view>
+          <view class="field">
+            <text class="lbl">校区（可选）</text>
+            <input v-model="form.campus" class="input" placeholder="例如：东校区" :maxlength="32" placeholder-class="ipt-ph" />
+          </view>
         </view>
 
         <view v-if="errMsg" class="err">{{ errMsg }}</view>
 
-        <wd-button
-          type="primary"
-          block
-          size="large"
-          :loading="loading"
-          :disabled="!canSubmit"
-          @click="onSubmit"
-        >
-          注册并登录
-        </wd-button>
+        <button class="btn-primary" :disabled="!canSubmit" @click="onSubmit">
+          {{ loading ? '注册中…' : '注册并登录' }}
+        </button>
 
         <view class="aux">
-          <text class="link" @tap="uni.navigateBack()">已有账号？返回登录</text>
+          <text class="muted">已有账号？</text>
+          <text class="link" @tap="uni.navigateBack()">返回登录</text>
         </view>
       </view>
     </view>
@@ -165,88 +151,110 @@ async function onSubmit() {
 </template>
 
 <style scoped lang="scss">
-.page {
+.auth-shell {
   min-height: 100vh;
   padding: 48rpx 32rpx 40rpx;
   display: flex;
   align-items: flex-start;
   justify-content: center;
 }
-.card {
+.auth-panel {
   width: 100%;
-  max-width: 560rpx;
-  background: #fff;
-  border-radius: 24rpx;
+  max-width: 580rpx;
   padding: 48rpx 40rpx;
-  box-shadow: 0 8rpx 32rpx rgba(37, 99, 235, 0.08);
 }
 .head {
-  margin-bottom: 32rpx;
+  margin-bottom: 36rpx;
+  text-align: center;
 }
-.title {
-  font-size: 40rpx;
+.name {
+  display: block;
+  font-size: 38rpx;
   font-weight: 700;
-  color: var(--vb-brand-600);
+  color: var(--vb-heading);
+  letter-spacing: 0.02em;
 }
-.sub {
+.slogan {
   display: block;
   font-size: 24rpx;
-  margin-top: 8rpx;
+  color: var(--vb-ink-500);
+  margin-top: 12rpx;
 }
 .form {
   display: flex;
   flex-direction: column;
-  gap: 20rpx;
+  gap: 22rpx;
 }
 .field {
   display: flex;
   flex-direction: column;
-  gap: 8rpx;
+  gap: 10rpx;
+  flex: 1;
+}
+.field-row {
+  display: flex;
+  gap: 20rpx;
 }
 .lbl {
   font-size: 24rpx;
   color: var(--vb-ink-700);
+  font-weight: 500;
 }
 .req {
-  color: #e23d3d;
-}
-.ipt {
-  width: 100%;
-  box-sizing: border-box;
-  border: 1rpx solid var(--vb-brand-100);
-  border-radius: 12rpx;
-  padding: 18rpx 20rpx;
-  font-size: 28rpx;
-  background: #fff;
-}
-.ipt-ph {
-  color: var(--vb-ink-300);
+  color: var(--vb-danger);
 }
 .pwd-row {
   position: relative;
 }
 .toggle {
   position: absolute;
-  right: 20rpx;
+  right: 24rpx;
   top: 50%;
   transform: translateY(-50%);
   font-size: 24rpx;
-  color: var(--vb-brand-600);
+  color: var(--vb-brand-700);
+  font-weight: 500;
+  cursor: pointer;
+}
+.ipt-ph {
+  color: var(--vb-ink-400);
 }
 .err {
   font-size: 24rpx;
-  color: #e23d3d;
+  color: var(--vb-danger);
   background: #fdeaea;
-  padding: 12rpx 16rpx;
-  border-radius: 8rpx;
+  padding: 14rpx 18rpx;
+  border-radius: 10rpx;
 }
 .aux {
   display: flex;
   justify-content: center;
-  margin-top: 8rpx;
+  align-items: center;
+  gap: 8rpx;
+  font-size: 24rpx;
+  margin-top: 4rpx;
+}
+.muted {
+  color: var(--vb-ink-500);
 }
 .link {
-  font-size: 24rpx;
-  color: var(--vb-brand-600);
+  color: var(--vb-brand-700);
+  font-weight: 600;
+}
+
+.btn-primary {
+  width: 100%;
+  border: none;
+  font-family: inherit;
+}
+.btn-primary::after {
+  border: none;
+}
+
+@media (max-width: 520px) {
+  .field-row {
+    flex-direction: column;
+    gap: 22rpx;
+  }
 }
 </style>

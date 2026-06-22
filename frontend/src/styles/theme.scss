@@ -1,28 +1,280 @@
 /**
- * 蓝白主题 CSS 变量（迁移自旧 Web 版 main.css）
- * 小程序与 H5 均支持 CSS 自定义属性。
+ * vBook 主题样式 —— 借鉴 vUSTB (像素北科) 设计语言
+ *
+ * 设计取向：
+ *  - 主色 #2f78ba（沉稳学术蓝），强调色 #5d7fa6（柔和紫蓝）
+ *  - 灰阶统一：背景 #f7f8fb / 边框 #dedde5 / 文本 #222a35 / 副文本 #667589
+ *  - 圆角 12px（surface-card）/ 22px（auth-panel 玻璃感）
+ *  - 阴影：基础 0 10px 24px rgba(66,82,105,0.08)，悬浮 0 14px 30px rgba(66,82,105,0.13)
+ *  - 字体：HarmonyOS Sans SC → Microsoft YaHei → PingFang SC → 系统默认
+ *
+ * 响应式断点：
+ *  - 默认 (< 768px)：rpx 单位，手机端原生体验
+ *  - ≥ 768px：px 单位，居中容器 max-width 1024px，电脑端布局
+ *  - ≥ 1200px：更宽的容器 max-width 1200px
  */
+
 page,
 :root {
-  --vb-brand-50: #eff5ff;
-  --vb-brand-100: #dbe7ff;
-  --vb-brand-300: #93b4ff;
-  --vb-brand-600: #2563eb;
-  --vb-brand-700: #1d4ed8;
-
-  --vb-ink-900: #0f1f33;
-  --vb-ink-700: #33475b;
-  --vb-ink-500: #5b6b7c;
-  --vb-ink-300: #9aa7b4;
-
-  --vb-bg: #f5f8ff;
+  /* ===== 基础调色板 ===== */
+  --vb-bg: #f7f8fb;
+  --vb-bg-soft: #f0f2f7;
+  --vb-bg-mute: #e6e9f0;
   --vb-white: #ffffff;
+  --vb-heading: #12161c;
+  --vb-ink-900: #1f2937;
+  --vb-ink-700: #334155;
+  --vb-ink-500: #667589;
+  --vb-ink-400: #8c97a7;
+  --vb-ink-300: #a4adbb;
+  --vb-border: #dedde5;
+  --vb-border-hover: #c9c8d1;
 
-  /* 响应式断点：
-     - 默认（< 768px）：rpx 单位，手机端原生体验
-     - ≥ 768px：px 单位，居中容器 max-width 1024px，电脑端布局
-     - ≥ 1200px：更宽的容器 max-width 1200px */
+  /* ===== 主色（品牌蓝） ===== */
+  --vb-brand-50: #eaf2fb;
+  --vb-brand-100: #c9dcf2;
+  --vb-brand-300: #6ea3da;
+  --vb-brand-500: #4b8cc7;
+  --vb-brand-600: #2f78ba;
+  --vb-brand-700: #285e8d;
+
+  /* ===== 强调色（柔和紫蓝） ===== */
+  --vb-accent-100: #d7dfeb;
+  --vb-accent-500: #5d7fa6;
+
+  /* ===== 状态色 ===== */
+  --vb-success: #22c55e;
+  --vb-danger: #dc2626;
+  --vb-warning: #eab308;
+
+  /* ===== 阴影 / 圆角 ===== */
+  --vb-shadow-sm: 0 2px 6px rgba(16, 24, 40, 0.05);
+  --vb-shadow-md: 0 8px 24px rgba(16, 24, 40, 0.08);
+  --vb-shadow-lg: 0 14px 30px rgba(66, 82, 105, 0.13);
+  --vb-radius-sm: 8px;
+  --vb-radius-md: 12px;
+  --vb-radius-lg: 22px;
 
   /* wot-design-uni 主题色对齐品牌色 */
-  --wot-color-theme: #2563eb;
+  --wot-color-theme: #2f78ba;
+}
+
+/* ===== 全局基础 ===== */
+page {
+  background: var(--vb-bg);
+  color: var(--vb-ink-900);
+  font-family: 'HarmonyOS Sans SC', 'Microsoft YaHei UI', 'PingFang SC',
+    -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Arial,
+    'Segoe UI', system-ui, sans-serif;
+  font-size: 28rpx;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ===== 通用组件类（对齐 vUSTB surface-card / input / btn 风格） ===== */
+
+/* 基础卡片（圆角 12px + 边框 + 阴影 + 悬浮效果） */
+.surface-card {
+  background: var(--vb-white);
+  border-radius: var(--vb-radius-md);
+  border: 1px solid var(--vb-border);
+  box-shadow: var(--vb-shadow-md);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  overflow: hidden;
+}
+.surface-card.hoverable:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--vb-shadow-lg);
+}
+
+/* 扁平卡片（无悬浮） */
+.flat-card {
+  background: var(--vb-white);
+  border-radius: var(--vb-radius-md);
+  border: 1px solid var(--vb-border);
+  box-shadow: var(--vb-shadow-sm);
+}
+
+/* 玻璃态卡片（登录 / 注册页用） */
+.glass-card {
+  background: rgba(246, 250, 255, 0.72);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  border: 1px solid rgba(212, 224, 239, 0.92);
+  border-radius: var(--vb-radius-lg);
+  box-shadow: 0 22px 40px rgba(44, 71, 99, 0.18);
+}
+
+/* ===== 表单输入 ===== */
+.input,
+input.vb-input {
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--vb-white);
+  border: 1px solid var(--vb-border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 28rpx;
+  color: var(--vb-ink-900);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.input:focus,
+input.vb-input:focus {
+  outline: none;
+  border-color: var(--vb-brand-600);
+  box-shadow: 0 0 0 3px rgba(47, 120, 186, 0.18);
+}
+.input::placeholder,
+input.vb-input::placeholder {
+  color: var(--vb-ink-400);
+}
+
+/* ===== 按钮 ===== */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border-radius: 10px;
+  border: 1px solid var(--vb-brand-700);
+  background: var(--vb-brand-600);
+  color: #ffffff;
+  font-size: 28rpx;
+  font-weight: 600;
+  transition: background 0.15s ease, transform 0.1s ease;
+  cursor: pointer;
+}
+.btn-primary:hover {
+  background: var(--vb-brand-700);
+}
+.btn-primary:active {
+  transform: translateY(1px);
+}
+.btn-primary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border-radius: 10px;
+  border: 1px solid var(--vb-border);
+  background: var(--vb-bg-soft);
+  color: var(--vb-ink-900);
+  font-size: 28rpx;
+  font-weight: 600;
+  transition: background 0.15s ease;
+  cursor: pointer;
+}
+.btn-ghost:hover {
+  background: var(--vb-bg-mute);
+}
+
+.btn-danger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border-radius: 10px;
+  border: 1px solid #b91c1c;
+  background: var(--vb-danger);
+  color: #ffffff;
+  font-size: 28rpx;
+  font-weight: 600;
+}
+.btn-danger:hover {
+  background: #b91c1c;
+}
+
+/* ===== 章节小标签 / 角标 ===== */
+.section-kicker {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--vb-ink-500);
+}
+
+/* ===== 动画 ===== */
+@keyframes vb-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20rpx);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes vb-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.animate-fade-in {
+  animation: vb-fade-in 0.5s ease-out;
+}
+.animate-slide-up {
+  animation: vb-slide-up 0.5s ease-out;
+}
+
+/* ===== 通用工具类（保留旧 vb-* 名以兼容旧代码） ===== */
+.vb-container {
+  padding: 24rpx;
+}
+.vb-card {
+  background: var(--vb-white);
+  border-radius: var(--vb-radius-md);
+  border: 1px solid var(--vb-border);
+  box-shadow: var(--vb-shadow-md);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.vb-card.hoverable:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--vb-shadow-lg);
+}
+.vb-price {
+  color: var(--vb-danger);
+  font-weight: 700;
+}
+.vb-muted {
+  color: var(--vb-ink-500);
+}
+.vb-badge {
+  display: inline-block;
+  padding: 2rpx 14rpx;
+  border-radius: 999px;
+  font-size: 22rpx;
+  background: var(--vb-brand-50);
+  color: var(--vb-brand-700);
+}
+.vb-badge.is-danger {
+  background: #fdeaea;
+  color: var(--vb-danger);
+}
+.vb-stack {
+  display: flex;
+  flex-direction: column;
+}
+.vb-row {
+  display: flex;
+  align-items: center;
+}
+.vb-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20rpx;
+}
+.vb-spacer {
+  flex: 1;
 }

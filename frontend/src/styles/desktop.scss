@@ -1,23 +1,21 @@
 /**
  * PC 端 / 平板适配（>= 768px 触发）
  *
- * 思路：
- *  - 在 PC 端把页面宽度限制在 1024px 内、水平居中
- *  - 列表网格从 2 列变 3~4 列
- *  - 字号、按钮、圆角统一放大
- *  - tabBar 占位（uni-app 在 H5 把 tabBar 渲染在底部）通过
- *    `body { padding-bottom: 0 }` 在 PC 端去掉，给内容更多空间
+ * 思路（继承 vUSTB 设计语言）：
+ *  - 顶部 .pc-nav 用统一 header-bar 风格：扁平 + 半透明 + 居中容器
+ *  - 列表网格从 1 列变 3 列（>= 1200px 时变 4 列）
+ *  - 字号 / 圆角 / 阴影按桌面端比例放大
+ *  - 隐藏 uni-app 自带的 navigationBar / tabBar
  *
  * 使用方式：在 App.vue 的全局 <style> 里 `@import './styles/desktop.scss';`
- * 由于移动端样式是 scoped 的，这里只能覆盖未 scoped 的元素。
- * 各页面里我们把公共类抽出来（.vb-grid / .vb-toolbar / .vb-stack …），
- * 在本文件里写响应式规则，scoped 容器不会阻止全局类生效。
+ * 由于移动端样式是 scoped 的，这里覆盖未 scoped 的元素 + 通用 .vb-* / .surface-card 类。
  */
 
 /* ====== 通用基线 ====== */
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', Helvetica, Arial,
-    'Microsoft YaHei', sans-serif;
+  font-family: 'HarmonyOS Sans SC', 'Microsoft YaHei UI', 'PingFang SC',
+    -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Arial,
+    'Segoe UI', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background: var(--vb-bg);
@@ -38,78 +36,106 @@ uni-page-body,
 
 /* ====== 桌面端布局（>= 768px） ====== */
 @media (min-width: 768px) {
-  /* 顶部 PC 导航：固定在顶部 */
-  .pc-nav {
-    display: block;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    background: #fff;
-    border-bottom: 1px solid var(--vb-brand-100);
-    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.06);
-  }
-  .pc-nav-inner {
-    max-width: 1200px;
-    margin: 0 auto;
-    height: 60px;
-    padding: 0 24px;
-    display: flex;
-    align-items: center;
-    gap: 32px;
-  }
-  .pc-brand {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    cursor: pointer;
-  }
-  .pc-logo {
-    font-size: 24px;
-  }
-  .pc-name {
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--vb-brand-600);
-  }
-  .pc-menu {
-    display: flex;
-    gap: 24px;
-    flex: 1;
-  }
-  .pc-menu-item {
-    font-size: 15px;
-    color: var(--vb-ink-700);
-    padding: 6px 12px;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background 0.15s, color 0.15s;
-  }
-  .pc-menu-item:hover {
-    background: var(--vb-brand-50);
-    color: var(--vb-brand-600);
-  }
-  .pc-right {
-    display: flex;
-    align-items: center;
-  }
-  .pc-user,
-  .pc-login {
-    font-size: 15px;
-    color: var(--vb-brand-600);
-    cursor: pointer;
-  }
-  .pc-user:hover,
-  .pc-login:hover {
-    text-decoration: underline;
-  }
-
   /* 根字号放大，rpx 才会同比放大 */
   page,
   :root {
     font-size: 16px;
   }
 
-  /* 所有「.page」类容器居中 + 限宽 */
+  /* ====== 顶部 PC 导航（继承 vUSTB header-bar 风格） ====== */
+  .pc-nav {
+    display: block;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--vb-white);
+    border-bottom: 1px solid var(--vb-border);
+    box-shadow: var(--vb-shadow-sm);
+  }
+  .pc-nav-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    height: 60px;
+    padding: 0 28px;
+    display: flex;
+    align-items: center;
+    gap: 28px;
+  }
+  .pc-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .pc-logo {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, var(--vb-brand-600), var(--vb-brand-700));
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 700;
+  }
+  .pc-name {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--vb-heading);
+    letter-spacing: 0.02em;
+  }
+  .pc-menu {
+    display: flex;
+    gap: 4px;
+    flex: 1;
+  }
+  .pc-menu-item {
+    font-size: 14px;
+    color: var(--vb-ink-700);
+    padding: 8px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+    font-weight: 500;
+  }
+  .pc-menu-item:hover {
+    background: var(--vb-brand-50);
+    color: var(--vb-brand-700);
+  }
+  .pc-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .pc-user {
+    font-size: 14px;
+    color: var(--vb-brand-700);
+    padding: 6px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    background: var(--vb-brand-50);
+    font-weight: 600;
+  }
+  .pc-user:hover {
+    background: var(--vb-brand-100);
+  }
+  .pc-login {
+    font-size: 14px;
+    color: #fff;
+    padding: 7px 18px;
+    border-radius: 10px;
+    background: var(--vb-brand-600);
+    cursor: pointer;
+    font-weight: 600;
+    transition: background 0.15s ease;
+  }
+  .pc-login:hover {
+    background: var(--vb-brand-700);
+  }
+
+  /* ====== 页面容器 ====== */
   .page,
   .vb-container {
     max-width: 1024px !important;
@@ -119,16 +145,18 @@ uni-page-body,
     padding-right: 32px !important;
   }
 
-  /* 登录 / 注册卡：page 里直接放 card，居中放大 */
-  .page > .card {
-    max-width: 480px !important;
+  /* ====== 登录 / 注册卡（玻璃态面板，桌面端居中放大） ====== */
+  .page > .card,
+  .auth-panel {
+    max-width: 460px !important;
     margin-left: auto !important;
     margin-right: auto !important;
-    margin-top: 60px !important;
-    padding: 56px 40px !important;
+    margin-top: 48px !important;
+    padding: 44px 40px !important;
+    border-radius: var(--vb-radius-lg) !important;
   }
 
-  /* 列表网格：3 列 */
+  /* ====== 列表网格：3 列 ====== */
   .vb-grid,
   .grid {
     display: grid !important;
@@ -141,34 +169,38 @@ uni-page-body,
     margin-bottom: 0 !important;
   }
 
-  /* 顶部 hero 区更大 */
+  /* ====== Hero 区 ====== */
   .hero {
-    padding: 56px 40px !important;
+    padding: 56px 48px !important;
+    border-radius: var(--vb-radius-md) !important;
   }
   .hero-title {
-    font-size: 32px !important;
+    font-size: 30px !important;
+    font-weight: 700 !important;
   }
   .hero-sub {
-    font-size: 16px !important;
+    font-size: 15px !important;
   }
 
-  /* 卡片悬浮效果（PC 端用 hover） */
+  /* ====== 卡片悬浮 ====== */
   .vb-card,
   .card,
   .book,
   .order,
   .form,
   .bulk,
-  .summary {
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  .summary,
+  .surface-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
   }
-  .vb-card:hover,
-  .card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(37, 99, 235, 0.12);
+  .vb-card.hoverable:hover,
+  .card.hoverable:hover,
+  .surface-card.hoverable:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--vb-shadow-lg);
   }
 
-  /* 全局字号修正：rpx 在大屏会被放大，这里把核心文本类拉回合理值 */
+  /* ====== 全局字号修正 ====== */
   body,
   page,
   view,
@@ -184,8 +216,8 @@ uni-page-body,
   .name,
   .nick,
   .head .title {
-    font-size: 18px !important;
-    font-weight: 600;
+    font-size: 17px !important;
+    font-weight: 600 !important;
   }
   .meta,
   .vb-muted,
@@ -201,14 +233,16 @@ uni-page-body,
     font-size: 13px !important;
   }
   .vb-price {
-    font-size: 18px !important;
+    font-size: 17px !important;
   }
   .vb-badge {
     font-size: 12px !important;
     padding: 2px 10px !important;
   }
 
-  /* 表单输入 */
+  /* ====== 表单输入 ====== */
+  input.vb-input,
+  .input,
   input.ipt,
   input.f,
   input.campus-input,
@@ -218,41 +252,32 @@ uni-page-body,
     padding: 10px 12px !important;
   }
 
-  /* 登录/注册头部 */
+  /* ====== 登录/注册头部品牌区 ====== */
   .brand .name {
-    font-size: 26px !important;
+    font-size: 24px !important;
   }
   .brand .slogan {
     font-size: 13px !important;
   }
   .brand .logo {
-    font-size: 56px !important;
+    font-size: 48px !important;
   }
 
-  /* 详情页封面在 PC 端不拉伸过大 */
+  /* ====== 详情页封面 ====== */
   .cover {
     max-width: 480px !important;
     margin-left: auto !important;
     margin-right: auto !important;
   }
 
-  /* 表单字段排成两列（PC 端体验更好） */
+  /* ====== 表单字段两列（PC 端体验更好） ====== */
   .form-grid-2 {
     display: grid !important;
     grid-template-columns: 1fr 1fr !important;
     gap: 16px 20px !important;
   }
 
-  /* input / textarea 高度与字号 */
-  .ipt,
-  .f,
-  .campus-input,
-  .bulk-input {
-    font-size: 15px !important;
-    padding: 12px 14px !important;
-  }
-
-  /* 标题层级放大 */
+  /* ====== 标题层级 ====== */
   h1,
   .h1,
   .title-lg {
@@ -262,30 +287,26 @@ uni-page-body,
   h2,
   .h2,
   .title-md {
-    font-size: 24px !important;
+    font-size: 22px !important;
     font-weight: 700;
   }
   h3,
   .h3,
   .title-sm {
-    font-size: 18px !important;
+    font-size: 17px !important;
     font-weight: 600;
   }
 
-  /* tabBar 在 PC 端隐藏（H5 渲染的 .uni-tabbar 元素） */
+  /* ====== 隐藏 uni-app 自带的底部 tabBar 和顶部 navigationBar ====== */
   .uni-tabbar {
     display: none !important;
   }
-  /* 同时给 page 预留的 tabBar 高度归零 */
   body {
     padding-bottom: 0 !important;
   }
   uni-page-body {
     padding-bottom: 0 !important;
   }
-
-  /* 隐藏 uni-app 自带的顶部 navigation bar（H5 渲染的 .uni-page-head），
-     用我们自己的 pc-nav 顶替。uni-page-body 自动顶到顶部。 */
   .uni-page-head,
   .uni-page-head-bg,
   .uni-page-head-fixed {
@@ -303,5 +324,8 @@ uni-page-body,
   .grid {
     grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
     gap: 28px !important;
+  }
+  .pc-nav-inner {
+    padding: 0 40px;
   }
 }

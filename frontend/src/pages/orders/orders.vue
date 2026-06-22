@@ -1,4 +1,9 @@
 <script setup>
+/**
+ * 订单页（vUSTB 风格）
+ *  - tab 切换（我买的 / 我卖的）
+ *  - 订单卡片用 surface-card
+ */
 import { ref, computed } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { orderApi } from '@/api'
@@ -36,35 +41,42 @@ async function load() {
 }
 
 const statusText = (s) => ({ paid: '已支付', completed: '已完成', cancelled: '已取消' })[s] || s
+const statusClass = (s) =>
+  ({ paid: 'badge-warn', completed: 'badge-ok', cancelled: 'badge-muted' })[s] || 'badge-muted'
 </script>
 
 <template>
   <view class="page">
-    <view class="tabs">
+    <view class="tabs surface-card">
       <text :class="['tab', tab === 'bought' ? 'on' : '']" @tap="tab = 'bought'">
-        我买的 ({{ bought.length }})
+        我买的
+        <text class="count">({{ bought.length }})</text>
       </text>
       <text :class="['tab', tab === 'sold' ? 'on' : '']" @tap="tab = 'sold'">
-        我卖的 ({{ sold.length }})
+        我卖的
+        <text class="count">({{ sold.length }})</text>
       </text>
     </view>
 
     <view v-if="list.length" class="list">
-      <view v-for="o in list" :key="o.id" class="order vb-card">
+      <view v-for="o in list" :key="o.id" class="order surface-card">
         <view class="order-top">
-          <text class="o-title">{{ o.book?.title || '书籍' }}</text>
-          <text class="vb-badge">{{ statusText(o.status) }}</text>
+          <text class="o-title">《{{ o.book?.title || '书籍' }}》</text>
+          <text :class="['status-badge', statusClass(o.status)]">{{ statusText(o.status) }}</text>
         </view>
         <view class="order-bottom">
-          <text class="vb-muted">{{ formatDate(o.created_at) }}</text>
-          <text class="vb-price">{{ formatPrice(o.price) }}</text>
+          <text class="muted">{{ formatDate(o.created_at) }}</text>
+          <text class="price">{{ formatPrice(o.price) }}</text>
         </view>
-        <text v-if="o.note" class="vb-muted note">备注：{{ o.note }}</text>
+        <text v-if="o.note" class="note muted">备注：{{ o.note }}</text>
       </view>
     </view>
 
-    <view v-else-if="!loading" class="empty vb-muted">
-      {{ tab === 'bought' ? '还没有买过书' : '还没有卖出记录' }}
+    <view v-else-if="!loading" class="empty">
+      <text class="empty-icon">📋</text>
+      <text class="muted">
+        {{ tab === 'bought' ? '还没有买过书' : '还没有卖出记录' }}
+      </text>
     </view>
   </view>
 </template>
@@ -72,54 +84,114 @@ const statusText = (s) => ({ paid: '已支付', completed: '已完成', cancelle
 <style scoped lang="scss">
 .page {
   padding: 24rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
 }
 .tabs {
   display: flex;
-  gap: 16rpx;
-  margin-bottom: 24rpx;
+  gap: 0;
+  padding: 6rpx;
+  border-radius: 12px;
 }
 .tab {
   flex: 1;
   text-align: center;
-  padding: 18rpx 0;
-  font-size: 28rpx;
-  background: #fff;
-  border-radius: 16rpx;
-  border: 1rpx solid var(--vb-brand-100);
+  padding: 16rpx 0;
+  font-size: 26rpx;
+  font-weight: 500;
   color: var(--vb-ink-500);
+  border-radius: 8px;
+  transition: background 0.15s ease, color 0.15s ease;
 }
 .tab.on {
   background: var(--vb-brand-600);
   color: #fff;
-  border-color: var(--vb-brand-600);
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(47, 120, 186, 0.25);
+}
+.tab .count {
+  font-weight: 400;
+  font-size: 22rpx;
+  opacity: 0.85;
+}
+.tab.on .count {
+  opacity: 0.9;
+}
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
 }
 .order {
-  padding: 22rpx;
-  margin-bottom: 16rpx;
+  padding: 22rpx 24rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 10rpx;
 }
 .order-top {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12rpx;
+  gap: 12rpx;
 }
 .o-title {
+  flex: 1;
   font-size: 28rpx;
   font-weight: 600;
+  color: var(--vb-heading);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.status-badge {
+  padding: 4rpx 14rpx;
+  border-radius: 999px;
+  font-size: 22rpx;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+.badge-ok {
+  background: rgba(34, 197, 94, 0.12);
+  color: #15803d;
+}
+.badge-warn {
+  background: rgba(234, 179, 8, 0.14);
+  color: #b45309;
+}
+.badge-muted {
+  background: var(--vb-bg-mute);
+  color: var(--vb-ink-500);
 }
 .order-bottom {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  font-size: 24rpx;
+}
+.muted {
+  color: var(--vb-ink-500);
+  font-size: 22rpx;
+}
+.price {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: var(--vb-danger);
 }
 .note {
-  display: block;
   font-size: 22rpx;
-  margin-top: 10rpx;
+  margin-top: 4rpx;
+  display: block;
 }
 .empty {
   text-align: center;
   padding: 80rpx 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12rpx;
+}
+.empty-icon {
+  font-size: 80rpx;
+  opacity: 0.5;
 }
 </style>

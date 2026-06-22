@@ -4,6 +4,8 @@
  *  1. 邮箱/用户名 + 密码（账号体系，H5 和小程序都可用）
  *  2. 注册账号（跳到 /pages/register/register）
  *  3. 微信一键登录（仅小程序 / 已配置 WECHAT_APPID 时可用）
+ *
+ * 视觉风格：vUSTB auth-panel —— 玻璃态圆角大卡 + 居中布局 + 标签式表单
  */
 import { ref, computed } from 'vue'
 import { useUserStore } from '@/store/user'
@@ -68,12 +70,12 @@ function goBack() {
 </script>
 
 <template>
-  <view class="page">
-    <view class="card">
-      <view class="brand">
+  <view class="auth-shell">
+    <view class="auth-panel glass-card animate-slide-up">
+      <view class="head">
         <text class="logo">📚</text>
         <text class="name">贝壳易书</text>
-        <text class="slogan">校园二手书 · 拍照一键卖</text>
+        <text class="slogan">欢迎回来 · 校园二手书流转平台</text>
       </view>
 
       <!-- 邮箱 / 用户名 + 密码登录 -->
@@ -82,7 +84,7 @@ function goBack() {
           <text class="lbl">账号</text>
           <input
             v-model="account"
-            class="ipt"
+            class="input"
             placeholder="邮箱或用户名"
             :maxlength="120"
             placeholder-class="ipt-ph"
@@ -93,7 +95,7 @@ function goBack() {
           <view class="pwd-row">
             <input
               v-model="password"
-              class="ipt"
+              class="input"
               :password="!showPwd"
               placeholder="至少 6 位"
               :maxlength="64"
@@ -103,63 +105,67 @@ function goBack() {
           </view>
         </view>
         <view v-if="errMsg" class="err">{{ errMsg }}</view>
-        <wd-button type="primary" block size="large" :loading="loading" @click="onPasswordLogin">
-          登录
-        </wd-button>
+
+        <button class="btn-primary" :disabled="loading" @click="onPasswordLogin">
+          {{ loading ? '登录中…' : '登录' }}
+        </button>
 
         <view class="aux">
-          <text class="link" @tap="goRegister">还没账号？立即注册</text>
+          <text class="muted">还没有账号？</text>
+          <text class="link" @tap="goRegister">立即注册</text>
         </view>
       </view>
 
       <!-- 分隔线 -->
-      <view class="divider"><text class="line" /><text class="txt">其他登录方式</text><text class="line" /></view>
+      <view class="divider">
+        <text class="line" />
+        <text class="txt">其他登录方式</text>
+        <text class="line" />
+      </view>
 
       <!-- 微信一键登录（小程序里始终显示；H5 隐藏以免误导） -->
       <view v-if="isWechatMp" class="wechat-wrap">
-        <wd-button block size="large" @click="onWechatLogin">微信一键登录</wd-button>
-        <text class="tip vb-muted">登录即表示同意用户协议与隐私政策</text>
+        <button class="btn-ghost" @click="onWechatLogin">微信一键登录</button>
+        <text class="tip">登录即表示同意用户协议与隐私政策</text>
       </view>
-      <text v-else class="tip vb-muted">登录即表示同意用户协议与隐私政策</text>
+      <text v-else class="tip">登录即表示同意用户协议与隐私政策</text>
     </view>
   </view>
 </template>
 
 <style scoped lang="scss">
-.page {
+.auth-shell {
   min-height: 100vh;
   padding: 80rpx 32rpx 40rpx;
   display: flex;
   align-items: center;
   justify-content: center;
 }
-.card {
+.auth-panel {
   width: 100%;
   max-width: 520rpx;
-  background: #fff;
-  border-radius: 24rpx;
-  padding: 64rpx 40rpx 48rpx;
-  box-shadow: 0 8rpx 32rpx rgba(37, 99, 235, 0.08);
+  padding: 56rpx 40rpx 48rpx;
 }
-.brand {
+.head {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-bottom: 56rpx;
+  margin-bottom: 48rpx;
 }
 .logo {
-  font-size: 96rpx;
+  font-size: 80rpx;
+  margin-bottom: 12rpx;
 }
 .name {
-  font-size: 40rpx;
+  font-size: 36rpx;
   font-weight: 700;
-  color: var(--vb-brand-600);
-  margin-top: 12rpx;
+  color: var(--vb-heading);
+  letter-spacing: 0.02em;
 }
 .slogan {
   font-size: 24rpx;
   color: var(--vb-ink-500);
-  margin-top: 8rpx;
+  margin-top: 10rpx;
 }
 .form {
   display: flex;
@@ -169,49 +175,50 @@ function goBack() {
 .field {
   display: flex;
   flex-direction: column;
-  gap: 8rpx;
+  gap: 10rpx;
 }
 .lbl {
   font-size: 24rpx;
   color: var(--vb-ink-700);
-}
-.ipt {
-  width: 100%;
-  box-sizing: border-box;
-  border: 1rpx solid var(--vb-brand-100);
-  border-radius: 12rpx;
-  padding: 18rpx 20rpx;
-  font-size: 28rpx;
-  background: #fff;
-}
-.ipt-ph {
-  color: var(--vb-ink-300);
+  font-weight: 500;
 }
 .pwd-row {
   position: relative;
 }
 .toggle {
   position: absolute;
-  right: 20rpx;
+  right: 24rpx;
   top: 50%;
   transform: translateY(-50%);
   font-size: 24rpx;
-  color: var(--vb-brand-600);
+  color: var(--vb-brand-700);
+  font-weight: 500;
+  cursor: pointer;
+}
+.ipt-ph {
+  color: var(--vb-ink-400);
 }
 .err {
   font-size: 24rpx;
-  color: #e23d3d;
+  color: var(--vb-danger);
   background: #fdeaea;
-  padding: 12rpx 16rpx;
-  border-radius: 8rpx;
+  padding: 14rpx 18rpx;
+  border-radius: 10rpx;
 }
 .aux {
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
+  align-items: center;
+  gap: 8rpx;
+  font-size: 24rpx;
+  margin-top: 4rpx;
+}
+.muted {
+  color: var(--vb-ink-500);
 }
 .link {
-  font-size: 24rpx;
-  color: var(--vb-brand-600);
+  color: var(--vb-brand-700);
+  font-weight: 600;
 }
 .divider {
   display: flex;
@@ -222,11 +229,11 @@ function goBack() {
 .line {
   flex: 1;
   height: 1rpx;
-  background: var(--vb-brand-100);
+  background: var(--vb-border);
 }
 .txt {
   font-size: 22rpx;
-  color: var(--vb-ink-300);
+  color: var(--vb-ink-400);
 }
 .wechat-wrap {
   display: flex;
@@ -235,7 +242,22 @@ function goBack() {
   align-items: center;
 }
 .tip {
+  display: block;
   font-size: 22rpx;
   text-align: center;
+  color: var(--vb-ink-400);
+  margin-top: 8rpx;
+}
+
+/* 让 button 元素继承 button reset，撑满宽度 */
+.btn-primary,
+.btn-ghost {
+  width: 100%;
+  border: none;
+  font-family: inherit;
+}
+.btn-primary::after,
+.btn-ghost::after {
+  border: none;
 }
 </style>
