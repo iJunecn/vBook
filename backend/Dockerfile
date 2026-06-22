@@ -23,7 +23,7 @@ COPY app ./app
 # 数据 / 上传目录
 RUN mkdir -p /app/data /app/uploads
 
-EXPOSE 8000
+EXPOSE 6627
 
 # 启动命令（使用 1 worker；开发用 --reload）
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "6627"]

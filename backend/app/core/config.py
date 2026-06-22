@@ -20,6 +20,8 @@ class Settings(BaseSettings):
     APP_VERSION: str = "0.1.0"
     DEBUG: bool = True
     API_V1_PREFIX: str = "/api/v1"
+    # 后端服务监听端口（同时被 Dockerfile / docker-compose / uvicorn 引用）
+    BACKEND_PORT: int = 6627
 
     # ---- 安全 ----
     SECRET_KEY: str = "change-me-in-production-please-use-a-long-random-string"

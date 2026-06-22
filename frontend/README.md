@@ -27,8 +27,8 @@ bun run build:h5          # dist/build/h5 → 任意静态托管
 ```
 
 ## 必要配置
-1. **后端地址** — [`src/api/config.js`](src/api/config.js) 的 `HOST`，默认 `http://localhost:8000`。
-   - 模拟器：可用 `localhost`；真机：改成电脑局域网 IP（如 `http://192.168.x.x:8000`）。
+1. **后端地址** — [`src/api/config.js`](src/api/config.js) 的 `HOST`，默认 `http://localhost:6627`。
+   - 模拟器：可用 `localhost`；真机：改成电脑局域网 IP（如 `http://192.168.x.x:6627`）。
    - 生产：必须是**已 ICP 备案的 HTTPS 域名**。
 2. **AppID** — 填入 [`src/manifest.json`](src/manifest.json) 的 `mp-weixin.appid`（或在开发者工具里填）。
 3. **后端微信登录密钥** — 后端 `.env` 配置 `WECHAT_APPID` / `WECHAT_SECRET`（与本小程序一致）。

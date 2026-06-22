@@ -14,18 +14,30 @@ services:
     volumes:
       - backend_data:/app/data
       - backend_uploads:/app/uploads
-    # 小程序 / H5 直接访问后端，需对外发布端口
-    # 生产请置于反向代理（HTTPS + 已备案域名）之后，供小程序「服务器域名」白名单使用
+    # 小程序 / H5 / 第三方客户端直接访问后端，需对外发布端口。
+    # 生产请置于反向代理（HTTPS + 已备案域名）之后，供小程序「服务器域名」白名单使用。
     ports:
-      - "8000:8000"
+      - "6627:6627"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:6627/health"]
       interval: 30s
       timeout: 5s
       retries: 3
 
-# 前端为 uni-app 微信小程序：用「微信开发者工具」运行/上传，不再需要 nginx 容器。
-# 如需发布 H5 版本：cd frontend && bun run build:h5，将 dist/build/h5 部署到任意静态托管。
+  # H5 网站容器（当前主交付物；uni-app 同一份源码既能编 H5 也能编小程序）
+  # - 对外暴露 6628:6628（直接用 6628 而非 80，省去 80 端口权限问题）
+  # - 容器内 nginx 把 /api/ 与 /uploads/ 反代到 backend:6627
+  # - 构建期注入 VITE_API_HOST=http://localhost:6627，方便 H5 直连后端联调
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.h5
+    container_name: vbook-frontend-h5
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "6628:6628"
 
 volumes:
   backend_data:
