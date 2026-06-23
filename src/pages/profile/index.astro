@@ -1,0 +1,82 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+export const prerender = false;
+
+const user = Astro.locals.user;
+if (!user) return Astro.redirect('/auth/login');
+
+const saved = Astro.url.searchParams.get('saved') === '1';
+
+const campusOptions = [
+  { value: '', label: '未设置' },
+  { value: 'main', label: '主校区' },
+  { value: 'north', label: '北校区' },
+  { value: 'south', label: '南校区' },
+  { value: 'east', label: '东校区' },
+];
+---
+
+<Layout title="个人资料">
+  <div class="mx-auto max-w-lg">
+    <h1 class="mb-6 text-2xl font-bold text-slate-800">个人资料</h1>
+
+    {saved && <p class="mb-4 rounded-lg bg-emerald-50 px-4 py-2 text-sm text-emerald-700">已保存</p>}
+
+    <div class="rounded-2xl border border-slate-200 bg-white p-6">
+      <dl class="mb-6 space-y-2 text-sm">
+        <div class="flex justify-between">
+          <dt class="text-slate-400">邮箱</dt>
+          <dd class="font-medium text-slate-700">{user.email}</dd>
+        </div>
+        <div class="flex justify-between">
+          <dt class="text-slate-400">用户名</dt>
+          <dd class="font-medium text-slate-700">{user.username}</dd>
+        </div>
+      </dl>
+
+      <form method="post" action="/api/profile" class="space-y-4">
+        <div>
+          <label class="mb-1 block text-sm font-medium text-slate-600">昵称</label>
+          <input
+            type="text"
+            name="nickname"
+            value={user.nickname ?? ''}
+            class="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
+          />
+        </div>
+        <div>
+          <label class="mb-1 block text-sm font-medium text-slate-600">校区</label>
+          <select
+            name="campus"
+            class="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
+          >
+            {
+              campusOptions.map((o) => (
+                <option value={o.value} selected={(user.campus ?? '') === o.value}>
+                  {o.label}
+                </option>
+              ))
+            }
+          </select>
+        </div>
+        <div>
+          <label class="mb-1 block text-sm font-medium text-slate-600">头像 URL</label>
+          <input
+            type="url"
+            name="avatarUrl"
+            value={user.avatarUrl ?? ''}
+            placeholder="https://…"
+            class="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
+          />
+        </div>
+        <button
+          type="submit"
+          class="rounded-lg bg-brand-600 px-6 py-2.5 font-medium text-white hover:bg-brand-700"
+        >
+          保存
+        </button>
+      </form>
+    </div>
+  </div>
+</Layout>

@@ -1,0 +1,19 @@
+---
+import Layout from '../layouts/Layout.astro';
+import SellFlow from '../components/vue/SellFlow.vue';
+
+export const prerender = false;
+
+if (!Astro.locals.user) {
+  return Astro.redirect('/auth/login');
+}
+---
+
+<Layout title="卖书">
+  <div class="mb-6">
+    <h1 class="text-2xl font-bold text-slate-800">上传并上架书籍</h1>
+    <p class="mt-1 text-slate-500">拍一张书脊照片，AI 自动识别书目，确认后一键上架</p>
+  </div>
+
+  <SellFlow client:load />
+</Layout>

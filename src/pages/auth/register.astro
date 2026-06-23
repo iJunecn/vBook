@@ -1,0 +1,66 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+export const prerender = false;
+
+if (Astro.locals.user) return Astro.redirect('/');
+
+const error = Astro.url.searchParams.get('error');
+---
+
+<Layout title="注册">
+  <div class="mx-auto max-w-sm">
+    <h1 class="mb-1 text-2xl font-bold text-slate-800">创建账号</h1>
+    <p class="mb-6 text-sm text-slate-500">加入贝壳易书，开始买卖二手书</p>
+
+    {error && <p class="mb-4 rounded-lg bg-rose-50 px-4 py-2 text-sm text-rose-600">{error}</p>}
+
+    <form method="post" action="/api/auth/register" class="space-y-4">
+      <div>
+        <label class="mb-1 block text-sm font-medium text-slate-600">邮箱</label>
+        <input
+          type="email"
+          name="email"
+          required
+          autocomplete="email"
+          class="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
+        />
+      </div>
+      <div>
+        <label class="mb-1 block text-sm font-medium text-slate-600">用户名</label>
+        <input
+          type="text"
+          name="username"
+          required
+          minlength="3"
+          maxlength="32"
+          autocomplete="username"
+          class="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
+        />
+      </div>
+      <div>
+        <label class="mb-1 block text-sm font-medium text-slate-600">密码</label>
+        <input
+          type="password"
+          name="password"
+          required
+          minlength="6"
+          autocomplete="new-password"
+          class="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
+        />
+        <p class="mt-1 text-xs text-slate-400">至少 6 位</p>
+      </div>
+      <button
+        type="submit"
+        class="w-full rounded-lg bg-brand-600 py-2.5 font-medium text-white hover:bg-brand-700"
+      >
+        注册
+      </button>
+    </form>
+
+    <p class="mt-4 text-center text-sm text-slate-500">
+      已有账号？
+      <a href="/auth/login" class="font-medium text-brand-700 hover:underline">去登录</a>
+    </p>
+  </div>
+</Layout>

@@ -1,0 +1,62 @@
+---
+import { desc, eq } from 'drizzle-orm';
+import Layout from '../../layouts/Layout.astro';
+import { db } from '../../lib/db';
+import { books, listings, orders, users } from '../../lib/schema';
+import { CAMPUS_LABELS } from '../../components/vue/types';
+
+export const prerender = false;
+
+const user = Astro.locals.user;
+if (!user) return Astro.redirect('/auth/login');
+
+const rows = await db
+  .select({
+    orderId: orders.id,
+    orderedAt: orders.createdAt,
+    bookId: books.id,
+    title: books.title,
+    author: books.author,
+    price: books.price,
+    sellerNickname: users.nickname,
+    sellerUsername: users.username,
+    sellerCampus: users.campus,
+  })
+  .from(orders)
+  .innerJoin(books, eq(orders.bookId, books.id))
+  .innerJoin(listings, eq(books.listingId, listings.id))
+  .innerJoin(users, eq(listings.sellerId, users.id))
+  .where(eq(orders.buyerId, user.id))
+  .orderBy(desc(orders.createdAt));
+---
+
+<Layout title="我的订单">
+  <h1 class="mb-6 text-2xl font-bold text-slate-800">我的订单</h1>
+
+  {
+    rows.length === 0 ? (
+      <div class="rounded-xl border border-dashed border-slate-300 py-16 text-center text-slate-400">
+        你还没有购买任何书籍 ·
+        <a href="/" class="text-brand-700 hover:underline">去逛逛</a>
+      </div>
+    ) : (
+      <div class="space-y-3">
+        {rows.map((o) => (
+          <div class="flex items-center justify-between rounded-xl border border-slate-200 bg-white p-4">
+            <div>
+              <a href={`/book/${o.bookId}`} class="font-medium text-slate-700 hover:text-brand-700">
+                {o.title}
+              </a>
+              {o.author && <p class="text-xs text-slate-400">{o.author}</p>}
+              <p class="mt-1 text-xs text-slate-400">
+                卖家：{o.sellerNickname || o.sellerUsername}
+                {o.sellerCampus && ` · ${CAMPUS_LABELS[o.sellerCampus] || o.sellerCampus}`}
+              </p>
+            </div>
+            <span class="text-lg font-bold text-rose-600">¥{o.price}</span>
+          </div>
+        ))}
+      </div>
+    )
+  }
+</Layout>

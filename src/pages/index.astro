@@ -1,0 +1,40 @@
+---
+import { desc, eq } from 'drizzle-orm';
+import Layout from '../layouts/Layout.astro';
+import BookGrid from '../components/vue/BookGrid.vue';
+import { db } from '../lib/db';
+import { books, listings, users } from '../lib/schema';
+import type { BookListItem } from '../components/vue/types';
+
+export const prerender = false;
+
+const rows = await db
+  .select({
+    id: books.id,
+    title: books.title,
+    author: books.author,
+    publisher: books.publisher,
+    isbn: books.isbn,
+    edition: books.edition,
+    price: books.price,
+    status: books.status,
+    sellerNickname: users.nickname,
+    sellerCampus: users.campus,
+  })
+  .from(books)
+  .innerJoin(listings, eq(books.listingId, listings.id))
+  .innerJoin(users, eq(listings.sellerId, users.id))
+  .where(eq(books.status, 'available'))
+  .orderBy(desc(books.createdAt));
+
+const bookList = rows as BookListItem[];
+---
+
+<Layout title="浏览">
+  <div class="mb-6">
+    <h1 class="text-2xl font-bold text-slate-800">校园二手书</h1>
+    <p class="mt-1 text-slate-500">发现身边同学在售的好书，淘到划算的二手教材</p>
+  </div>
+
+  <BookGrid client:load books={bookList} />
+</Layout>

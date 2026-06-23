@@ -1,0 +1,74 @@
+---
+import { desc, eq } from 'drizzle-orm';
+import Layout from '../../layouts/Layout.astro';
+import ListingActions from '../../components/vue/ListingActions.vue';
+import { db } from '../../lib/db';
+import { books, listings } from '../../lib/schema';
+
+export const prerender = false;
+
+const user = Astro.locals.user;
+if (!user) return Astro.redirect('/auth/login');
+
+const rows = await db
+  .select({
+    id: books.id,
+    title: books.title,
+    author: books.author,
+    price: books.price,
+    status: books.status,
+    createdAt: books.createdAt,
+  })
+  .from(books)
+  .innerJoin(listings, eq(books.listingId, listings.id))
+  .where(eq(listings.sellerId, user.id))
+  .orderBy(desc(books.createdAt));
+---
+
+<Layout title="我的书">
+  <div class="mb-6 flex items-center justify-between">
+    <h1 class="text-2xl font-bold text-slate-800">我发布的书</h1>
+    <a
+      href="/sell"
+      class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700"
+    >
+      + 上架新书
+    </a>
+  </div>
+
+  {
+    rows.length === 0 ? (
+      <div class="rounded-xl border border-dashed border-slate-300 py-16 text-center text-slate-400">
+        你还没有发布任何书籍
+      </div>
+    ) : (
+      <div class="overflow-hidden rounded-xl border border-slate-200 bg-white">
+        <table class="w-full text-sm">
+          <thead class="bg-slate-50 text-left text-xs uppercase text-slate-500">
+            <tr>
+              <th class="px-4 py-3 font-medium">书名</th>
+              <th class="px-4 py-3 font-medium">价格</th>
+              <th class="px-4 py-3 font-medium">状态 / 操作</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            {rows.map((b) => (
+              <tr>
+                <td class="px-4 py-3">
+                  <a href={`/book/${b.id}`} class="font-medium text-slate-700 hover:text-brand-700">
+                    {b.title}
+                  </a>
+                  {b.author && <p class="text-xs text-slate-400">{b.author}</p>}
+                </td>
+                <td class="px-4 py-3 font-semibold text-rose-600">¥{b.price}</td>
+                <td class="px-4 py-3">
+                  <ListingActions client:load bookId={b.id} status={b.status} />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    )
+  }
+</Layout>

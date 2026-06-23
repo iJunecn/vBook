@@ -1,0 +1,77 @@
+---
+import '../styles/global.css';
+
+interface Props {
+  title?: string;
+}
+
+const { title = '贝壳易书' } = Astro.props;
+const user = Astro.locals.user;
+const path = Astro.url.pathname;
+
+const navLink = (href: string) =>
+  `text-sm font-medium px-3 py-2 rounded-lg transition-colors ${
+    path === href ? 'bg-brand-50 text-brand-700' : 'text-slate-600 hover:bg-slate-100'
+  }`;
+---
+
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title} · 贝壳易书</title>
+  </head>
+  <body class="min-h-screen flex flex-col">
+    <header class="sticky top-0 z-20 bg-white/90 backdrop-blur border-b border-slate-200">
+      <div class="mx-auto max-w-6xl px-4 h-16 flex items-center justify-between gap-4">
+        <a href="/" class="flex items-center gap-2 font-bold text-lg text-brand-700">
+          <span class="text-2xl">🐚</span>
+          <span>贝壳易书</span>
+        </a>
+        <nav class="flex items-center gap-1">
+          <a href="/" class={navLink('/')}>浏览</a>
+          <a href="/sell" class={navLink('/sell')}>卖书</a>
+          {
+            user ? (
+              <>
+                <a href="/profile/listings" class={navLink('/profile/listings')}>我的书</a>
+                <a href="/profile/orders" class={navLink('/profile/orders')}>订单</a>
+                <a href="/profile" class={navLink('/profile')}>
+                  {user.nickname || user.username}
+                </a>
+                <form method="post" action="/api/auth/logout">
+                  <button
+                    type="submit"
+                    class="text-sm font-medium px-3 py-2 rounded-lg text-slate-500 hover:bg-slate-100"
+                  >
+                    退出
+                  </button>
+                </form>
+              </>
+            ) : (
+              <>
+                <a href="/auth/login" class={navLink('/auth/login')}>登录</a>
+                <a
+                  href="/auth/register"
+                  class="text-sm font-medium px-4 py-2 rounded-lg bg-brand-600 text-white hover:bg-brand-700"
+                >
+                  注册
+                </a>
+              </>
+            )
+          }
+        </nav>
+      </div>
+    </header>
+
+    <main class="flex-1 mx-auto w-full max-w-6xl px-4 py-8">
+      <slot />
+    </main>
+
+    <footer class="border-t border-slate-200 py-6 text-center text-sm text-slate-400">
+      © 2026 贝壳易书 · 校园二手书交易平台
+    </footer>
+  </body>
+</html>
