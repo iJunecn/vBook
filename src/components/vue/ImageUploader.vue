@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue';
+import { Library } from 'lucide-vue-next';
 
 const props = defineProps<{ loading?: boolean }>();
 const emit = defineEmits<{ (e: 'recognize', file: File): void }>();
@@ -58,7 +59,7 @@ function recognize() {
         <p class="mt-2 text-xs text-slate-400">点击或拖拽以更换图片</p>
       </template>
       <template v-else>
-        <span class="text-4xl">📚</span>
+        <Library :size="40" :stroke-width="1.5" class="text-slate-400" />
         <p class="mt-2 font-medium text-slate-600">点击上传 或 拖拽书脊照片到此处</p>
         <p class="text-xs text-slate-400">支持 JPG / PNG / WEBP，最大 10MB</p>
       </template>

@@ -1,10 +1,11 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import { Shell } from 'lucide-vue-next';
 ---
 
 <Layout title="未找到">
   <div class="py-24 text-center">
-    <p class="text-6xl">🐚</p>
+    <Shell :size="64" :stroke-width="1.5" class="mx-auto text-slate-300" />
     <h1 class="mt-4 text-2xl font-bold text-slate-800">页面未找到</h1>
     <p class="mt-2 text-slate-500">你访问的内容可能已被删除或不存在</p>
     <a

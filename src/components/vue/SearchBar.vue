@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { Search } from 'lucide-vue-next';
+
 defineProps<{ modelValue: string }>();
 const emit = defineEmits<{ (e: 'update:modelValue', value: string): void }>();
 </script>
@@ -6,7 +8,7 @@ const emit = defineEmits<{ (e: 'update:modelValue', value: string): void }>();
 <template>
   <div class="relative">
     <span class="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-400">
-      🔍
+      <Search :size="18" />
     </span>
     <input
       :value="modelValue"

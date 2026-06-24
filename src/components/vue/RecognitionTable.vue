@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
+import { Trash2 } from 'lucide-vue-next';
 import type { RecognizedBook } from '../../lib/ai';
 
 interface EditableRow extends RecognizedBook {
@@ -11,6 +12,15 @@ const props = defineProps<{ initialBooks: RecognizedBook[] }>();
 const rows = ref<EditableRow[]>([]);
 const submitting = ref(false);
 const error = ref<string | null>(null);
+const bulkPrice = ref('');
+
+function applyBulkPrice() {
+  const price = Number(bulkPrice.value);
+  if (bulkPrice.value === '' || Number.isNaN(price) || price < 0) return;
+  rows.value.forEach((row) => {
+    row.price = bulkPrice.value;
+  });
+}
 
 function toRows(books: RecognizedBook[]): EditableRow[] {
   return books.map((b) => ({
@@ -93,7 +103,16 @@ const cell =
 <template>
   <div class="space-y-4">
     <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white">
-      <table class="w-full text-sm">
+      <table class="w-full min-w-[860px] table-fixed text-sm">
+        <colgroup>
+          <col style="width: 26%" />
+          <col style="width: 15%" />
+          <col style="width: 17%" />
+          <col style="width: 16%" />
+          <col style="width: 10%" />
+          <col style="width: 12%" />
+          <col style="width: 52px" />
+        </colgroup>
         <thead class="bg-slate-50 text-left text-xs uppercase text-slate-500">
           <tr>
             <th class="px-3 py-2 font-medium">书名 *</th>
@@ -106,18 +125,28 @@ const cell =
           </tr>
         </thead>
         <tbody class="divide-y divide-slate-100">
-          <tr v-for="(row, i) in rows" :key="i">
+          <tr v-for="(row, i) in rows" :key="i" class="align-top">
             <td class="p-1"><input v-model="row.title" :class="cell" placeholder="必填" /></td>
             <td class="p-1"><input v-model="row.author" :class="cell" /></td>
             <td class="p-1"><input v-model="row.publisher" :class="cell" /></td>
             <td class="p-1"><input v-model="row.isbn" :class="cell" /></td>
             <td class="p-1"><input v-model="row.edition" :class="cell" /></td>
             <td class="p-1">
-              <input v-model="row.price" type="number" min="0" step="0.01" :class="[cell, 'w-24']" placeholder="¥" />
+              <div class="flex items-center rounded-md focus-within:bg-white focus-within:ring-1 focus-within:ring-brand-300">
+                <span class="pl-2 text-slate-400">¥</span>
+                <input
+                  v-model="row.price"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  class="w-full bg-transparent px-1 py-1.5 outline-none"
+                  placeholder="0.00"
+                />
+              </div>
             </td>
             <td class="p-1 text-center">
-              <button type="button" class="text-slate-400 hover:text-rose-600" @click="removeRow(i)">
-                🗑
+              <button type="button" class="inline-flex text-slate-400 hover:text-rose-600" @click="removeRow(i)">
+                <Trash2 :size="16" />
               </button>
             </td>
           </tr>
@@ -133,13 +162,38 @@ const cell =
     <p v-if="error" class="text-sm text-rose-600">{{ error }}</p>
 
     <div class="flex flex-wrap items-center justify-between gap-3">
-      <button
-        type="button"
-        @click="addRow"
-        class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-600 hover:border-brand-300"
-      >
-        + 添加一行
-      </button>
+      <div class="flex flex-wrap items-center gap-2">
+        <button
+          type="button"
+          @click="addRow"
+          class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-600 hover:border-brand-300"
+        >
+          + 添加一行
+        </button>
+        <div v-if="rows.length > 0" class="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-2 py-1.5">
+          <label class="text-sm text-slate-500">统一定价</label>
+          <div class="flex items-center rounded-md border border-slate-300 bg-white focus-within:border-brand-300">
+            <span class="pl-2 text-slate-400">¥</span>
+            <input
+              v-model="bulkPrice"
+              type="number"
+              min="0"
+              step="0.01"
+              placeholder="5"
+              class="w-16 bg-transparent px-1 py-1 text-sm outline-none"
+              @keyup.enter="applyBulkPrice"
+            />
+          </div>
+          <button
+            type="button"
+            :disabled="bulkPrice === ''"
+            @click="applyBulkPrice"
+            class="rounded-md bg-brand-100 px-3 py-1 text-sm font-medium text-brand-700 hover:bg-brand-200 disabled:opacity-50"
+          >
+            全部应用
+          </button>
+        </div>
+      </div>
       <button
         type="button"
         :disabled="submitting || rows.length === 0"
