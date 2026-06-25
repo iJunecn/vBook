@@ -1,0 +1,77 @@
+# One-time, applied with the ADMIN kubeconfig. A dedicated CloudNativePG cluster
+# `vbook-db` (1 primary + 1 hot standby) in the vbook namespace, backed up to R2.
+#
+# Prerequisites (cluster-wide, already installed — see k8s repo docs/adding-a-web-app.md):
+#   CNPG operator + barman-cloud plugin in cnpg-system, cert-manager, local-path SC.
+#
+# BEFORE applying, create the R2 credentials secret out-of-band (do NOT commit it):
+#   kubectl -n vbook create secret generic r2-backup-creds \
+#     --from-literal=ACCESS_KEY_ID='<R2_ACCESS_KEY_ID>' \
+#     --from-literal=ACCESS_SECRET_KEY='<R2_SECRET_ACCESS_KEY>'
+#
+# Then replace <R2_ACCOUNT_ID> below and: kubectl apply -f k8s/postgres-cluster.yaml
+#
+# CNPG creates: database `app` + owner `app`, and secret `vbook-db-app` (keys
+# username/password/dbname/host/uri) — app.yaml & migrate-job.yaml read `uri` as DATABASE_URL.
+# Services: vbook-db-rw (primary/writes), vbook-db-ro (standby/reads), vbook-db-r.
+---
+apiVersion: barmancloud.cnpg.io/v1
+kind: ObjectStore
+metadata:
+  name: vbook-db-backup
+  namespace: vbook
+spec:
+  retentionPolicy: "30d"
+  configuration:
+    # Unique per cluster — convention s3://<bucket>/<namespace>. Bucket `k8s` is shared.
+    destinationPath: "s3://k8s/vbook"
+    endpointURL: "https://<R2_ACCOUNT_ID>.r2.cloudflarestorage.com"
+    s3Credentials:
+      accessKeyId:
+        name: r2-backup-creds
+        key: ACCESS_KEY_ID
+      secretAccessKey:
+        name: r2-backup-creds
+        key: ACCESS_SECRET_KEY
+    wal:
+      compression: gzip
+    data:
+      compression: gzip
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: vbook-db
+  namespace: vbook
+spec:
+  instances: 2
+  imageName: ghcr.io/cloudnative-pg/postgresql:17
+  plugins:
+    - name: barman-cloud.cloudnative-pg.io
+      isWALArchiver: true
+      parameters:
+        barmanObjectName: vbook-db-backup
+  storage:
+    size: 10Gi
+    storageClass: local-path
+  affinity:
+    enablePodAntiAffinity: true
+    topologyKey: kubernetes.io/hostname
+  bootstrap:
+    initdb:
+      database: app
+      owner: app
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: ScheduledBackup
+metadata:
+  name: vbook-db-daily
+  namespace: vbook
+spec:
+  schedule: "0 0 3 * * *"            # 03:00 daily (CNPG cron has a leading seconds field)
+  backupOwnerReference: self
+  method: plugin
+  pluginConfiguration:
+    name: barman-cloud.cloudnative-pg.io
+  cluster:
+    name: vbook-db
