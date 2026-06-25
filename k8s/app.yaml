@@ -25,7 +25,7 @@ spec:
         seccompProfile: { type: RuntimeDefault }
       containers:
         - name: web
-          image: ghcr.io/ijunecn/vbook:latest   # CI overwrites this with the commit SHA
+          image: ghcr.io/jianyuelab/vbook:latest   # CI overwrites this with the commit SHA
           ports: [{ containerPort: 8080 }]
           securityContext:
             allowPrivilegeEscalation: false

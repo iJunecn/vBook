@@ -4,8 +4,9 @@ vBook 是 **SSR + 有状态** app（Astro Node standalone + Postgres + Drizzle �
 按 k8s 仓库 `docs/adding-a-web-app.md` 的「有状态 app」配方部署。CI（[.github/workflows/deploy.yaml](.github/workflows/deploy.yaml)）
 在每次 push 到 `main` 时：构建镜像 → 推送 GHCR → 同步密钥 → **跑迁移 Job** → 滚动更新。
 
+- 仓库：`JianyueLab/vBook`（组织仓库）
 - 域名：`ebook.ustb.world`
-- 镜像：`ghcr.io/ijunecn/vbook`
+- 镜像：`ghcr.io/jianyuelab/vbook`
 - namespace：`vbook`
 - 数据库：CNPG `vbook-db`（2 实例，R2 备份 `s3://k8s/vbook`），连接串自动生成进 `vbook-db-app` 密钥
 
@@ -33,16 +34,18 @@ kubectl -n vbook get cluster,pods -w   # 等 vbook-db Phase=healthy、2 个 pod 
 
 > 前置（集群级，已装则跳过）：CNPG operator + barman-cloud 插件（`cnpg-system`）、cert-manager、`local-path` StorageClass。
 
-## GitHub 仓库 Secret（Settings → Secrets and variables → Actions）
+## GitHub Secret（Settings → Secrets and variables → Actions）
 
-`iJunecn/vBook` 是**个人仓库**（不在 JianyueLab-Org 组织里），所以**四个都要在仓库级**设置：
+`JianyueLab/vBook` 是**组织仓库**。若 `KUBECONFIG_B64` / `GHCR_PULL_TOKEN` 已在 **JianyueLab 组织级**设过（与其他 app 复用），本仓库自动可用，**只需再加 `AGNES_*` 两个仓库级 Secret**。否则四个都在仓库级补上：
 
-| Secret | 值 |
-|---|---|
-| `KUBECONFIG_B64` | 受限 `deployer` kubeconfig 的 base64（与其他 app 复用同一值）。`base64 -w0 deployer-kubeconfig` |
-| `GHCR_PULL_TOKEN` | PAT，需 `read:packages`，能拉 `ghcr.io/ijunecn/*`（个人命名空间的私有包） |
-| `AGNES_API_KEY` | AI 接口 key |
-| `AGNES_BASE_URL` | AI 接口 base（以 `/v1` 结尾） |
+| Secret | 级别 | 值 |
+|---|---|---|
+| `KUBECONFIG_B64` | 组织级（推荐）/ 仓库级 | 受限 `deployer` kubeconfig 的 base64。`base64 -w0 deployer-kubeconfig` |
+| `GHCR_PULL_TOKEN` | 组织级（推荐）/ 仓库级 | PAT，需 `read:packages`，能拉 `ghcr.io/jianyuelab/*` 私有包 |
+| `AGNES_API_KEY` | 仓库级 | AI 接口 key |
+| `AGNES_BASE_URL` | 仓库级 | AI 接口 base（以 `/v1` 结尾） |
+
+> 镜像现在落在组织命名空间 `ghcr.io/jianyuelab/vbook`，所以构建用的 `GITHUB_TOKEN`（`packages: write`）和拉取用的组织级 `GHCR_PULL_TOKEN` 都已覆盖到，无需个人 PAT。
 
 ## DNS
 

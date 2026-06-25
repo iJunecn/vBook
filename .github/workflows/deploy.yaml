@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
 
 env:
-  IMAGE: ghcr.io/ijunecn/vbook
+  IMAGE: ghcr.io/jianyuelab/vbook
   NS: vbook
 
 permissions:

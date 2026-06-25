@@ -1,6 +1,6 @@
 # Pre-roll Drizzle migration Job. Same image as the app; the command is overridden
 # to run `drizzle-kit migrate` against the CNPG database BEFORE the new app rolls out.
-# CI substitutes __IMAGE__ with ghcr.io/ijunecn/vbook:<sha>, deletes any prior Job,
+# CI substitutes __IMAGE__ with ghcr.io/jianyuelab/vbook:<sha>, deletes any prior Job,
 # applies this, and waits for completion (see .github/workflows/deploy.yaml).
 apiVersion: batch/v1
 kind: Job
