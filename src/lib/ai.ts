@@ -1,11 +1,8 @@
 import OpenAI from 'openai';
 
-// Read at runtime via process.env (NOT import.meta.env, which Vite statically
-// inlines at build time) so secrets are injected into the container at runtime
-// rather than baked into the image.
 const client = new OpenAI({
-  apiKey: process.env.AGNES_API_KEY,
-  baseURL: process.env.AGNES_BASE_URL,
+  apiKey: import.meta.env.AGNES_API_KEY,
+  baseURL: import.meta.env.AGNES_BASE_URL,
 });
 
 export interface RecognizedBook {

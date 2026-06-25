@@ -27,9 +27,7 @@ Drizzle commands read `DATABASE_URL` from `.env` automatically (drizzle-kit auto
 
 ## Environment
 
-Requires `.env` (copy from `.env.example`): `DATABASE_URL` (PostgreSQL), `AGNES_API_KEY`, `AGNES_BASE_URL` (OpenAI-compatible endpoint, should end in `/v1`). These are typed in [src/env.d.ts](src/env.d.ts).
-
-These three **runtime secrets are read via `process.env.*`** ([src/lib/db.ts](src/lib/db.ts), [src/lib/ai.ts](src/lib/ai.ts)), *not* `import.meta.env`. This is deliberate: Vite statically **inlines** `import.meta.env.*` into the bundle at `astro build` time, which would bake whatever value was present during the (Docker) build into the image — breaking the k8s deploy where one image is configured per-environment by injected env vars. `import.meta.env` is still fine for build-time constants like `import.meta.env.PROD` ([src/lib/auth.ts](src/lib/auth.ts)). Astro's Node standalone server exposes `process.env` at runtime; locally, drizzle-kit and `astro dev` still load `.env`.
+Requires `.env` (copy from `.env.example`): `DATABASE_URL` (PostgreSQL), `AGNES_API_KEY`, `AGNES_BASE_URL` (OpenAI-compatible endpoint, should end in `/v1`). These are typed in [src/env.d.ts](src/env.d.ts) and read via `import.meta.env.*`, not `process.env`.
 
 ## Architecture
 
